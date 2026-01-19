@@ -1,0 +1,117 @@
+import React from 'react';
+import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Photo } from '../services/dataService';
+
+interface LightboxProps {
+  photo: Photo | null;
+  images: Photo[];
+  currentIndex: number;
+  onClose: () => void;
+  onNext: () => void;
+  onPrevious: () => void;
+}
+
+export function Lightbox({ photo, images, currentIndex, onClose, onNext, onPrevious }: LightboxProps) {
+  const hasPrevious = currentIndex > 0;
+  const hasNext = currentIndex < images.length - 1;
+
+  // Prevent background scroll
+  React.useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
+
+  if (!photo) return null;
+
+  return (
+    // Tailwind: fixed inset-0 bg-black bg-opacity-80 flex justify-center items-center p-4 z-50
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-90 flex justify-center items-center p-4 z-50"
+      onClick={onClose}
+    >
+      {/* Close Button - Tailwind: absolute top-4 right-4 text-white hover:text-orange-500 */}
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 text-white hover:text-orange-500 transition duration-300 p-2 bg-black bg-opacity-50 rounded-full"
+        aria-label="Close lightbox"
+      >
+        <X className="w-8 h-8" />
+      </button>
+
+      {/* Previous Button - Tailwind: absolute left-4 top-1/2 -translate-y-1/2 */}
+      {hasPrevious && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onPrevious();
+          }}
+          className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-orange-500 transition duration-300 p-3 bg-black bg-opacity-50 rounded-full touch-manipulation"
+          aria-label="Previous image"
+        >
+          <ChevronLeft className="w-8 h-8 sm:w-10 sm:h-10" />
+        </button>
+      )}
+
+      {/* Next Button - Tailwind: absolute right-4 top-1/2 -translate-y-1/2 */}
+      {hasNext && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onNext();
+          }}
+          className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-orange-500 transition duration-300 p-3 bg-black bg-opacity-50 rounded-full touch-manipulation"
+          aria-label="Next image"
+        >
+          <ChevronRight className="w-8 h-8 sm:w-10 sm:h-10" />
+        </button>
+      )}
+
+      {/* Content Container */}
+      <div 
+        className="relative max-w-7xl max-h-full flex flex-col md:flex-row gap-4 md:gap-8 items-center"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Image - Tailwind: max-w-full max-h-[70vh] object-contain rounded-lg */}
+        <div className="flex-1 flex items-center justify-center">
+          <img
+            src={photo.src || photo.url}
+            alt={photo.title}
+            className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-2xl"
+          />
+        </div>
+
+        {/* Metadata Panel - Tailwind: bg-white p-6 rounded-lg max-w-md */}
+        <div className="bg-white p-6 rounded-lg max-w-md w-full md:w-96">
+          <h2 className="text-2xl sm:text-3xl mb-3 text-gray-900">{photo.title}</h2>
+          <p className="text-gray-600 mb-4 text-sm sm:text-base">{photo.description}</p>
+          
+          {/* Tags - Tailwind: flex flex-wrap gap-2 mb-4 */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            {photo.tags.map((tag, index) => (
+              <span
+                key={index}
+                className="px-3 py-1 bg-orange-500 text-white text-sm rounded-full"
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
+
+          {/* Additional Info */}
+          <div className="border-t border-gray-200 pt-4 text-sm text-gray-500">
+            <p className="mb-2">
+              <span className="font-semibold text-gray-700">Category:</span>{' '}
+              <span className="capitalize">{photo.category}</span>
+            </p>
+            <p>
+              <span className="font-semibold text-gray-700">Dimensions:</span>{' '}
+              {photo.width} × {photo.height}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

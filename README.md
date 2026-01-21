@@ -1,7 +1,7 @@
 
   # Photographer Portfolio Website
 
-A modern, responsive photographer portfolio website built with React, TypeScript, and Vite. Features a complete admin panel with Supabase backend integration, comprehensive UI components, and advanced image management capabilities.
+A modern, responsive photographer portfolio website built with Next.js, TypeScript, and Tailwind CSS. Features a complete admin panel with Supabase backend integration, comprehensive UI components, and advanced image management capabilities.
 
 ## 🌟 Features
 
@@ -35,10 +35,10 @@ A modern, responsive photographer portfolio website built with React, TypeScript
 ## 🛠️ Technology Stack
 
 ### **Frontend**
-- **React 18.3.1** - UI framework with hooks and concurrent features
+- **Next.js 16.1.4** - Full-stack React framework with App Router
+- **React 19.2.3** - UI framework with hooks and concurrent features
 - **TypeScript 5.9.3** - Type-safe JavaScript development
-- **Vite 6.3.5** - Fast build tool and development server
-- **Tailwind CSS** - Utility-first CSS framework (via shadcn/ui)
+- **Tailwind CSS 3.4.17** - Utility-first CSS framework
 
 ### **UI Components**
 - **Radix UI** - Headless UI primitives for accessibility
@@ -58,8 +58,8 @@ A modern, responsive photographer portfolio website built with React, TypeScript
 
 ### **Development Tools**
 - **ESLint & TypeScript** - Code quality and type checking
-- **SWC Compiler** - Fast TypeScript compilation
-- **Hot Module Replacement** - Instant development feedback
+- **SWC Compiler** - Fast TypeScript compilation (via Next.js)
+- **Hot Module Replacement** - Instant development feedback (via Next.js dev server)
 
 ## 🚀 Development
 
@@ -106,15 +106,15 @@ A modern, responsive photographer portfolio website built with React, TypeScript
 ### **Development Commands**
 ```bash
 npm run dev          # Start development server on port 3000
-npm run build        # Build for production (outputs to build/ directory)
-npm run preview      # Preview production build locally
+npm run build        # Build for production (outputs to .next/ directory)
+npm run start        # Start production server
+npm run lint         # Run ESLint for code quality checks
 ```
 
 ### **Environment Variables**
 ```env
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-VITE_DEV_MODE=true
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
 ### **Supabase Tables**
@@ -181,16 +181,16 @@ vercel --prod
 ### **Netlify**
 ```bash
 npm run build
-netlify deploy --prod --dir=build
+netlify deploy --prod --dir=.next
 ```
 
 ### **Custom Hosting**
-Build outputs to `build/` directory. Configure your hosting provider to:
-- Serve static files from `build/`
-- Handle client-side routing (SPA fallback)
+Build outputs to `.next/` directory. Configure your hosting provider to:
+- Serve static files from `.next/`
+- Handle server-side rendering (SSR) with Next.js
 - Set environment variables:
-  - `VITE_SUPABASE_URL`
-  - `VITE_SUPABASE_ANON_KEY`
+  - `NEXT_PUBLIC_SUPABASE_URL`
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
 ### **Environment Configuration**
 Production environment requires:
@@ -224,7 +224,7 @@ Production environment requires:
 - Clear node_modules and reinstall: `rm -rf node_modules && npm install`
 - Check TypeScript compilation errors
 - Verify all environment variables are set
-- Ensure Vite configuration is correct
+- Ensure Next.js configuration is correct
 
 ### **Development Tips**
 - Use React DevTools for component debugging
@@ -255,8 +255,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 🙏‍♂️ Acknowledgments
 
-- **React** - UI framework with excellent developer experience
-- **Vite** - Lightning-fast build tool and development server
+- **Next.js** - Full-stack React framework with excellent developer experience
+- **React** - UI framework with hooks and concurrent features
 - **TypeScript** - Type-safe JavaScript development
 - **Tailwind CSS** - Utility-first CSS framework
 - **shadcn/ui** - Beautiful, accessible component library

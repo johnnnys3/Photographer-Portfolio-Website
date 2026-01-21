@@ -1,6 +1,5 @@
 import React from 'react';
 import { SearchResult } from '../lib/searchUtils';
-import { GalleryCard } from './GalleryCard';
 import { highlightText } from '../lib/searchUtils';
 
 interface SearchResultsProps {
@@ -15,7 +14,7 @@ export function SearchResults({ results, query, onImageClick, loading = false }:
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[...Array(12)].map((_, i) => (
-          <div key={i} className="aspect-square bg-gray-200 rounded-lg animate-pulse"></div>
+          <div key={i} className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
         ))}
       </div>
     );
@@ -24,13 +23,13 @@ export function SearchResults({ results, query, onImageClick, loading = false }:
   if (results.length === 0) {
     return (
       <div className="text-center py-16">
-        <div className="text-gray-400 mb-4">
+        <div className="text-gray-400 dark:text-gray-500 mb-4">
           <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
         </div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No images found</h3>
-        <p className="text-gray-500">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No images found</h3>
+        <p className="text-gray-500 dark:text-gray-400">
           {query 
             ? `No results for "${query}". Try different keywords or filters.`
             : 'Enter a search term to find images.'
@@ -44,7 +43,7 @@ export function SearchResults({ results, query, onImageClick, loading = false }:
     <div>
       {/* Search Results Header */}
       <div className="mb-6">
-        <p className="text-gray-600">
+        <p className="text-gray-600 dark:text-gray-300">
           Found {results.length} result{results.length !== 1 ? 's' : ''}
           {query && ` for "${query}"`}
         </p>

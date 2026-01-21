@@ -1,3 +1,14 @@
+/**
+ * MIGRATION NOTE:
+ * Source: src/contexts/AuthContext.tsx
+ * Destination: src/contexts/AuthContext.tsx (updated for Next.js)
+ * This context needs 'use client' because it uses React hooks and browser-only auth features.
+ * The authentication logic is preserved exactly from the original implementation.
+ * Any deviation is unintentional and should be flagged.
+ */
+
+'use client';
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { getCurrentUser, onAuthStateChange } from '../lib/auth';

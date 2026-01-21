@@ -36,12 +36,12 @@ export function GalleryPage({ onImageClick }: GalleryPageProps) {
   }, [selectedCategory]);
 
   return (
-    <div className="min-h-screen bg-white pt-24 pb-16 px-4 sm:px-6 lg:px-8 w-full">
+    <div className="min-h-screen bg-white dark:bg-black pt-24 pb-16 px-4 sm:px-6 lg:px-8 w-full">
       <div className="w-full">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl sm:text-5xl mb-4 text-gray-900">Gallery</h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <h1 className="text-4xl sm:text-5xl mb-4 text-gray-900 dark:text-white">Gallery</h1>
+          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
             Explore my collection of photography across various categories
           </p>
         </div>
@@ -60,7 +60,7 @@ export function GalleryPage({ onImageClick }: GalleryPageProps) {
               className={`px-4 py-2 rounded-full transition duration-300 ease-in-out ${
                 selectedCategory === 'all'
                   ? 'bg-black text-white shadow-lg'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
             >
               All ({images.length})
@@ -72,7 +72,7 @@ export function GalleryPage({ onImageClick }: GalleryPageProps) {
                 className={`px-4 py-2 rounded-full transition duration-300 ease-in-out ${
                   selectedCategory === gallery.id
                     ? 'bg-black text-white shadow-lg'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                 }`}
               >
                 {gallery.name} ({gallery.count})
@@ -89,15 +89,31 @@ export function GalleryPage({ onImageClick }: GalleryPageProps) {
             ))}
           </div>
         ) : paginatedImages.length > 0 ? (
-          <HybridMasonry 
-            images={paginatedImages} 
-            onImageClick={onImageClick}
-            className="w-full"
-          />
+          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 space-y-4">
+            {paginatedImages.map((image) => (
+              <div
+                key={image.id}
+                onClick={() => onImageClick(image.id)}
+                className="break-inside-avoid mb-4 cursor-pointer transition duration-300 ease-in-out transform hover:scale-105 group"
+              >
+                <div className="relative overflow-hidden rounded-lg">
+                  <img
+                    src={image.url}
+                    alt={image.title}
+                    className="w-full object-cover"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition duration-300 ease-in-out flex items-end justify-center z-10">
+                    <h3 className="text-white text-sm font-semibold p-2">{image.title}</h3>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         ) : (
           <div className="text-center py-16">
-            <div className="text-gray-400 mb-4">No images found</div>
-            <p className="text-gray-500 text-sm">
+            <div className="text-gray-400 dark:text-gray-500 mb-4">No images found</div>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">
               {selectedCategory === 'all' 
                 ? "No images have been uploaded yet." 
                 : `No images found in the "${selectedCategory}" category.`
@@ -106,7 +122,7 @@ export function GalleryPage({ onImageClick }: GalleryPageProps) {
             {selectedCategory !== 'all' && (
               <button
                 onClick={() => setSelectedCategory('all')}
-                className="text-black hover:text-gray-800 underline mt-4"
+                className="text-black dark:text-white hover:text-gray-800 dark:hover:text-gray-200 underline mt-4"
               >
                 View all images
               </button>
@@ -118,7 +134,7 @@ export function GalleryPage({ onImageClick }: GalleryPageProps) {
         {totalPages > 1 && filteredImages.length > 0 && (
           <div className="flex flex-col items-center gap-4 mt-12">
             {/* Page info */}
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-gray-600 dark:text-gray-300">
               Showing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredImages.length)} of {filteredImages.length} images
             </div>
             
@@ -126,7 +142,7 @@ export function GalleryPage({ onImageClick }: GalleryPageProps) {
               <button
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1 || totalPages === 0}
-                className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition duration-300"
+                className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-300"
               >
                 Previous
               </button>
@@ -139,7 +155,7 @@ export function GalleryPage({ onImageClick }: GalleryPageProps) {
                     className={`px-4 py-2 rounded-lg transition duration-300 ${
                       currentPage === page
                         ? 'bg-black text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                     }`}
                   >
                     {page}
@@ -150,7 +166,7 @@ export function GalleryPage({ onImageClick }: GalleryPageProps) {
               <button
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages || totalPages === 0}
-                className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition duration-300"
+                className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-300"
               >
                 Next
               </button>

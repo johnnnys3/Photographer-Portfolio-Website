@@ -10,7 +10,6 @@ import { Lightbox } from './components/Lightbox';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { DataProvider, useData } from './contexts/DataContext';
 import { ErrorBoundary, PageErrorBoundary, ComponentErrorBoundary } from './components/ErrorBoundary';
-import { Lock } from 'lucide-react';
 
 type Page = 'home' | 'galleries' | 'about' | 'contact' | 'admin';
 
@@ -109,17 +108,6 @@ function AppContent() {
           />
         )}
       </ComponentErrorBoundary>
-
-      {/* Admin Access Button (Hidden Easter Egg) */}
-      {currentPage === 'home' && (
-        <button
-          onClick={() => handleNavigate('admin')}
-          className="fixed bottom-4 left-4 opacity-20 hover:opacity-100 transition duration-300 bg-gray-900 text-white p-2 rounded-full"
-          aria-label="Admin access"
-        >
-          <Lock className="w-4 h-4" />
-        </button>
-      )}
     </div>
   );
 }

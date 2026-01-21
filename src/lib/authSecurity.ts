@@ -151,7 +151,7 @@ export class AuthSecurityManager {
 
 
     // In production, send to security monitoring service
-    if (import.meta.env.PROD) {
+    if (process.env.NODE_ENV === 'production') {
       // sendToSecurityMonitoring(logEntry);
     }
   }

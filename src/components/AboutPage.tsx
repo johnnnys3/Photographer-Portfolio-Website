@@ -1,10 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Camera, Award, Users, MapPin, LucideIcon } from 'lucide-react';
 import { getSiteContent, CONTENT_SECTIONS, DEFAULT_CONTENT } from '../services/contentService';
-
-interface AboutPageProps {
-  onNavigate: (page: string) => void;
-}
+import Link from 'next/link';
 
 interface StatItem {
   icon: LucideIcon | string;
@@ -19,6 +16,10 @@ const iconMap: Record<string, LucideIcon> = {
   Users,
   MapPin,
 };
+
+interface AboutPageProps {
+  onNavigate?: (page: string) => void;
+}
 
 export function AboutPage({ onNavigate }: AboutPageProps) {
   const [siteContent, setSiteContent] = useState<any>({});
@@ -64,28 +65,28 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white pt-24 pb-16 px-4 sm:px-6 lg:px-8 w-full flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-black pt-24 pb-16 px-4 sm:px-6 lg:px-8 w-full flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading content...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black dark:border-white mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-300">Loading content...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white pt-24 pb-16 px-4 sm:px-6 lg:px-8 w-full">
+    <div className="min-h-screen bg-white dark:bg-black pt-24 pb-16 px-4 sm:px-6 lg:px-8 w-full">
       <div className="w-full">
         {/* Header */}
         <div className="text-center mb-16">
-          <h1 className="text-4xl sm:text-5xl mb-4 text-gray-900">About Me</h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <h1 className="text-4xl sm:text-5xl mb-4 text-gray-900 dark:text-white">About Me</h1>
+          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
             Passionate photographer dedicated to capturing the beauty of our world
           </p>
         </div>
 
         {/* Main Content - Tailwind: flex flex-col md:flex-row gap-12 items-center */}
-        <div className="flex flex-col md:flex-row gap-12 items-center mb-16">
+        <div className="flex flex-col md:flex-row gap-12 items-start mb-16">
           {/* Profile Image */}
           <div className="w-full md:w-1/2">
             <img
@@ -98,23 +99,23 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
 
           {/* Bio */}
           <div className="w-full md:w-1/2">
-            <h2 className="text-3xl mb-4 text-gray-900">
+            <h2 className="text-3xl mb-4 text-gray-900 dark:text-white">
               {siteContent.bio?.content?.title || 'My Journey'}
             </h2>
-            <div className="space-y-4 text-gray-600">
+            <div className="space-y-4 text-gray-600 dark:text-gray-300 mb-6">
               {(siteContent.bio?.content?.paragraphs || []).map((paragraph: string, index: number) => (
                 <p key={index}>{paragraph}</p>
               ))}
-              {(!siteContent.bio?.content?.paragraphs || siteContent.bio.content.paragraphs.length === 0) && (
+              {(!siteContent.bio?.content?.paragraphs || siteContent.bio?.content?.paragraphs?.length === 0) && (
                 <p>Bio content will be available soon.</p>
               )}
-              <button
-                onClick={() => onNavigate('contact')}
-                className="bg-black hover:bg-gray-800 text-white py-3 px-8 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg mt-6"
-              >
-                Get In Touch
-              </button>
             </div>
+            <Link
+              href="/contact"
+              className="bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black py-3 px-8 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+            >
+              Get In Touch
+            </Link>
           </div>
         </div>
 
@@ -130,11 +131,11 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
               return (
                 <div
                   key={index}
-                  className="text-center p-6 bg-gray-50 rounded-lg hover:shadow-lg transition duration-300"
+                  className="text-center p-6 bg-gray-50 dark:bg-gray-800 rounded-lg hover:shadow-lg transition duration-300"
                 >
-                  <Icon className="w-10 h-10 text-black mx-auto mb-3" />
-                  <div className="text-3xl text-gray-900 mb-2">{stat.value}</div>
-                  <div className="text-gray-600">{stat.label}</div>
+                  <Icon className="w-10 h-10 text-black dark:text-white mx-auto mb-3" />
+                  <div className="text-3xl text-gray-900 dark:text-white mb-2">{stat.value}</div>
+                  <div className="text-gray-600 dark:text-gray-300">{stat.label}</div>
                 </div>
               );
             })}
@@ -143,13 +144,13 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
 
         {/* Services - Only show if services exist */}
         {siteContent.services?.content && siteContent.services.content.length > 0 && (
-          <div className="bg-gray-50 rounded-lg p-8 sm:p-12">
-            <h2 className="text-3xl mb-8 text-gray-900 text-center">Services</h2>
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-8 sm:p-12">
+            <h2 className="text-3xl mb-8 text-gray-900 dark:text-white text-center">Services</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {siteContent.services.content.map((service: any, index: number) => (
-                <div key={index} className="bg-white p-6 rounded-lg shadow-md">
-                  <h3 className="text-xl mb-3 text-gray-900">{service.title}</h3>
-                  <p className="text-gray-600">{service.description}</p>
+                <div key={index} className="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-md">
+                  <h3 className="text-xl mb-3 text-gray-900 dark:text-white">{service.title}</h3>
+                  <p className="text-gray-600 dark:text-gray-300">{service.description}</p>
                 </div>
               ))}
             </div>

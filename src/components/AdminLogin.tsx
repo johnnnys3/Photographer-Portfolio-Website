@@ -1,3 +1,14 @@
+/**
+ * MIGRATION NOTE:
+ * Source: src/components/AdminLogin.tsx
+ * Destination: src/components/AdminLogin.tsx (updated for Next.js)
+ * This component needs 'use client' because it uses useState, form handling, and browser-only features.
+ * The authentication logic is preserved exactly from the original implementation.
+ * Any deviation is unintentional and should be flagged.
+ */
+
+'use client';
+
 import React, { useState } from 'react';
 import { Camera, Mail, Lock, Eye, EyeOff, AlertTriangle } from 'lucide-react';
 import { secureSignIn } from '../lib/authSecurity';

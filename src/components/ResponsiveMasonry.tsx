@@ -19,7 +19,6 @@ export function ResponsiveMasonry({ images, onImageClick, className = '' }: Resp
   const [columns, setColumns] = useState(1);
   const [containerWidth, setContainerWidth] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [itemHeights, setItemHeights] = useState<Map<string, number>>(new Map());
 
   // Breakpoints for column count
   const breakpoints = [
@@ -113,16 +112,22 @@ export function ResponsiveMasonry({ images, onImageClick, className = '' }: Resp
     <div 
       ref={containerRef}
       className={`w-full ${className}`}
-      style={{ display: 'flex', gap: '16px' }}
+      style={{ 
+        display: 'flex', 
+        gap: '16px',
+        minWidth: 0,
+        overflow: 'hidden'
+      }}
     >
       {columnArrays.map((column, columnIndex) => (
         <div
           key={columnIndex}
-          className="flex-1"
+          className="flex-1 min-w-0"
           style={{
             display: 'flex',
             flexDirection: 'column',
             gap: '16px',
+            minWidth: 0
           }}
         >
           {column.map((item) => (

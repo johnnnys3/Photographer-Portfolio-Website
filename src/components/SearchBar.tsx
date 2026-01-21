@@ -1,3 +1,14 @@
+/**
+ * MIGRATION NOTE:
+ * Source: src/components/SearchBar.tsx
+ * Destination: src/components/SearchBar.tsx (updated for Next.js)
+ * This component needs 'use client' because it uses useState, useRef, search functionality, and browser-only features.
+ * The search functionality is preserved exactly from the original implementation.
+ * Any deviation is unintentional and should be flagged.
+ */
+
+'use client';
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, X, Filter, ChevronDown } from 'lucide-react';
 import { searchEngine, SearchFilters, SearchResult } from '../lib/searchUtils';

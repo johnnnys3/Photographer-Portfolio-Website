@@ -61,7 +61,6 @@ export function ShareDownloadPanel({ image, onClose }: ShareDownloadPanelProps) 
       setCopiedEmbed(true);
       setTimeout(() => setCopiedEmbed(false), 2000);
     } catch (error) {
-      console.error('Failed to copy embed code:', error);
     }
   };
 

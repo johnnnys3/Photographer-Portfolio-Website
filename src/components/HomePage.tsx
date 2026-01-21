@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { ImageCarousel } from './ImageCarousel';
 import { getFeaturedImages } from '../services/dataService';
 import { getSiteContent, CONTENT_SECTIONS } from '../services/contentService';
@@ -23,10 +23,9 @@ export function HomePage({ onNavigate, onImageClick }: HomePageProps) {
   useEffect(() => {
     const loadFeaturedImages = async () => {
       try {
-        const featured = await getFeaturedImages(6);
+        const featured = await getFeaturedImages(3);
         setFeaturedImages(featured);
       } catch (error) {
-        console.error('Failed to load featured images:', error);
       }
     };
     
@@ -39,7 +38,6 @@ export function HomePage({ onNavigate, onImageClick }: HomePageProps) {
         const heroContent = await getSiteContent(CONTENT_SECTIONS.HOME_HERO);
         setSiteContent(heroContent || {});
       } catch (error) {
-        console.error('Failed to load site content:', error);
       }
     };
 
@@ -58,28 +56,20 @@ export function HomePage({ onNavigate, onImageClick }: HomePageProps) {
       ) : null}
 
       {/* CTA Section - Tailwind: bg-white py-16 px-4 */}
-      <div className="bg-white py-16 px-4">
-        <div className="max-w-7xl mx-auto text-center">
+      <div className="bg-white py-16 px-4 sm:px-6 lg:px-8 w-full">
+        <div className="w-full text-center">
           <h1 className="text-3xl sm:text-5xl mb-6 text-gray-900">
             {siteContent?.title || "Capturing Moments, Creating Memories"}
           </h1>
           <p className="text-lg sm:text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
             {siteContent?.subtitle || "Professional photography that tells your story through stunning visuals and creative composition."}
           </p>
-          {/* CTA Button - Tailwind: bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded */}
-          <button
-            onClick={() => onNavigate('galleries')}
-            className="bg-orange-500 hover:bg-orange-600 text-white py-3 px-8 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg inline-flex items-center gap-2 text-lg"
-          >
-            View My Work
-            <ArrowRight className="w-5 h-5" />
-          </button>
-        </div>
+                  </div>
       </div>
 
       {/* Featured Work Section - Tailwind: bg-gray-50 py-16 px-4 */}
-      <div className="bg-gray-50 py-16 px-4">
-        <div className="max-w-7xl mx-auto">
+      <div className="bg-gray-50 py-16 px-4 sm:px-6 lg:px-8 w-full">
+        <div className="w-full">
           <h2 className="text-3xl sm:text-4xl mb-8 text-gray-900 text-center">
             Featured Work
           </h2>
@@ -87,7 +77,7 @@ export function HomePage({ onNavigate, onImageClick }: HomePageProps) {
           {/* Grid - Tailwind: grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 */}
           {dataLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
+              {[...Array(3)].map((_, i) => (
                 <div key={i} className="aspect-square bg-gray-200 animate-pulse rounded-lg"></div>
               ))}
             </div>
@@ -111,7 +101,7 @@ export function HomePage({ onNavigate, onImageClick }: HomePageProps) {
                       style={{ aspectRatio }}
                     >
                       <img
-                        src={image.url || image.src}
+                        src={image.url}
                         alt={image.title}
                         className="w-full h-full object-cover"
                         loading="lazy"
@@ -132,9 +122,9 @@ export function HomePage({ onNavigate, onImageClick }: HomePageProps) {
           <div className="text-center mt-12">
             <button
               onClick={() => onNavigate('galleries')}
-              className="text-orange-500 hover:text-orange-600 text-lg inline-flex items-center gap-2 transition duration-300"
+              className="bg-black hover:bg-gray-800 text-white py-3 px-8 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg inline-flex items-center gap-2 text-lg"
             >
-              View All Galleries
+              View My Work
               <ArrowRight className="w-5 h-5" />
             </button>
           </div>
@@ -142,8 +132,8 @@ export function HomePage({ onNavigate, onImageClick }: HomePageProps) {
       </div>
 
       {/* About Preview Section */}
-      <div className="bg-white py-16 px-4">
-        <div className="max-w-7xl mx-auto text-center">
+      <div className="bg-white py-16 px-4 sm:px-6 lg:px-8 w-full">
+        <div className="w-full text-center">
           <h2 className="text-3xl sm:text-4xl mb-6 text-gray-900">
             About the Photographer
           </h2>
@@ -154,7 +144,7 @@ export function HomePage({ onNavigate, onImageClick }: HomePageProps) {
           </p>
           <button
             onClick={() => onNavigate('about')}
-            className="text-orange-500 hover:text-orange-600 text-lg inline-flex items-center gap-2 transition duration-300"
+            className="text-black hover:text-gray-800 text-lg inline-flex items-center gap-2 transition duration-300"
           >
             Learn More
             <ArrowRight className="w-5 h-5" />

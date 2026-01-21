@@ -1,8 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { HybridMasonry } from './ResponsiveMasonry';
-import { GalleryCard } from './GalleryCard';
 import { useData } from '../contexts/DataContext';
-import { Grid, Grid3x3 } from 'lucide-react';
 
 interface GalleryPageProps {
   onImageClick: (imageId: string) => void;
@@ -38,8 +36,8 @@ export function GalleryPage({ onImageClick }: GalleryPageProps) {
   }, [selectedCategory]);
 
   return (
-    <div className="min-h-screen bg-white pt-24 pb-16 px-4">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-white pt-24 pb-16 px-4 sm:px-6 lg:px-8 w-full">
+      <div className="w-full">
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl sm:text-5xl mb-4 text-gray-900">Gallery</h1>
@@ -61,7 +59,7 @@ export function GalleryPage({ onImageClick }: GalleryPageProps) {
               onClick={() => setSelectedCategory('all')}
               className={`px-4 py-2 rounded-full transition duration-300 ease-in-out ${
                 selectedCategory === 'all'
-                  ? 'bg-orange-500 text-white shadow-lg'
+                  ? 'bg-black text-white shadow-lg'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -73,7 +71,7 @@ export function GalleryPage({ onImageClick }: GalleryPageProps) {
                 onClick={() => setSelectedCategory(gallery.id)}
                 className={`px-4 py-2 rounded-full transition duration-300 ease-in-out ${
                   selectedCategory === gallery.id
-                    ? 'bg-orange-500 text-white shadow-lg'
+                    ? 'bg-black text-white shadow-lg'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -108,7 +106,7 @@ export function GalleryPage({ onImageClick }: GalleryPageProps) {
             {selectedCategory !== 'all' && (
               <button
                 onClick={() => setSelectedCategory('all')}
-                className="text-orange-500 hover:text-orange-600 underline mt-4"
+                className="text-black hover:text-gray-800 underline mt-4"
               >
                 View all images
               </button>
@@ -140,7 +138,7 @@ export function GalleryPage({ onImageClick }: GalleryPageProps) {
                     onClick={() => setCurrentPage(page)}
                     className={`px-4 py-2 rounded-lg transition duration-300 ${
                       currentPage === page
-                        ? 'bg-orange-500 text-white'
+                        ? 'bg-black text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >

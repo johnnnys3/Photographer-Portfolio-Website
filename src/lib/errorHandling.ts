@@ -51,11 +51,8 @@ class ErrorHandler {
 
     this.addReport(errorReport);
     this.logError(errorReport);
+    this.sendToErrorReporting(errorReport);
     
-    // In production, send to error reporting service
-    if (process.env.NODE_ENV === 'production') {
-      this.sendToErrorReporting(errorReport);
-    }
   }
 
   private addReport(report: ErrorReport): void {
@@ -67,20 +64,11 @@ class ErrorHandler {
     }
   }
 
-  private logError(report: ErrorReport): void {
-    console.group(`🚨 Error: ${report.context || 'Unknown'}`);
-    console.error('Error:', report.error);
-    console.log('Context:', report.context);
-    console.log('Timestamp:', report.timestamp.toISOString());
-    console.log('URL:', report.url);
-    console.log('User Agent:', report.userAgent);
-    if (report.userId) {
-      console.log('User ID:', report.userId);
-    }
-    console.groupEnd();
+  private logError(_report: ErrorReport): void {
+    console.log('Error logged:', _report);
   }
 
-  private sendToErrorReporting(report: ErrorReport): void {
+  private sendToErrorReporting(_report: ErrorReport): void {
     // Placeholder for error reporting service integration
     // Examples: Sentry, LogRocket, Bugsnag, etc.
     try {
@@ -99,9 +87,7 @@ class ErrorHandler {
       //   method: 'POST',
       //   headers: { 'Content-Type': 'application/json' },
       //   body: JSON.stringify(report)
-      // }).catch(err => console.error('Failed to report error:', err));
     } catch (err) {
-      console.error('Failed to send error report:', err);
     }
   }
 

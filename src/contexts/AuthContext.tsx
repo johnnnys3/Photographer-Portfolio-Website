@@ -51,7 +51,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setIsAdmin(false);
         }
       } catch (error) {
-        console.error('Auth initialization error:', error);
         setUser(null);
         setSessionValid(false);
         setIsAdmin(false);
@@ -63,7 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initializeAuth();
 
     // Listen for auth changes
-    const { data: { subscription } } = onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = onAuthStateChange(async (_event, session) => {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
       
@@ -109,7 +108,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         details: { action: 'logout' }
       });
     } catch (error) {
-      console.error('Sign out error:', error);
     }
   };
 

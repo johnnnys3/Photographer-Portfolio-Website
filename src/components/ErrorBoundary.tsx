@@ -27,16 +27,9 @@ export class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     this.setState({ errorInfo });
     
-    // Log error to console in development
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
-    
     // Call custom error handler if provided
     this.props.onError?.(error, errorInfo);
     
-    // In production, you might want to send this to an error reporting service
-    if (process.env.NODE_ENV === 'production') {
-      // Example: sendToErrorReporting(error, errorInfo);
-    }
   }
 
   handleRetry = () => {
@@ -75,12 +68,8 @@ export class ErrorBoundary extends Component<Props, State> {
               }
             </p>
 
-            {/* Error Details (Development Only) */}
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+            {this.state.error && (
               <details className="mb-6 text-left">
-                <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700 mb-2">
-                  Error Details
-                </summary>
                 <div className="bg-gray-100 rounded p-3 text-xs text-gray-700 overflow-auto max-h-32">
                   <p className="font-semibold mb-1">Error:</p>
                   <p className="mb-2">{this.state.error.message}</p>
@@ -128,7 +117,6 @@ export function PageErrorBoundary({ children, context }: { children: ReactNode; 
       context={context}
       onError={(error, errorInfo) => {
         // Log page-specific errors
-        console.error(`Page Error (${context}):`, error, errorInfo);
       }}
     >
       {children}
@@ -166,7 +154,6 @@ export function AsyncErrorBoundary({ children }: { children: ReactNode }) {
     <ErrorBoundary
       context="Async Operation"
       onError={(error, errorInfo) => {
-        console.error('Async Error:', error, errorInfo);
       }}
     >
       {children}

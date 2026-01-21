@@ -18,15 +18,6 @@ export interface Photo {
   uploaded_at?: string;
 }
 
-// Define default galleries
-const DEFAULT_GALLERIES = [
-  { id: 'weddings', name: 'Weddings' },
-  { id: 'portraits', name: 'Portraits' },
-  { id: 'landscapes', name: 'Landscapes' },
-  { id: 'nature', name: 'Nature' },
-  { id: 'urban', name: 'Urban' },
-  { id: 'interior', name: 'Interior' },
-];
 
 export interface Category {
   id: string;
@@ -52,7 +43,7 @@ export async function fetchCarouselImages(): Promise<Photo[]> {
   try {
     const images = await fetchImages();
     // Return the 6 most recent images for carousel
-    return images.slice(0, 6).map(img => ({
+    return images.slice(0, 6).map((img: DatabaseImage) => ({
       id: img.id,
       url: img.url, // Primary field
       src: img.url, // Alias for backward compatibility
@@ -66,7 +57,6 @@ export async function fetchCarouselImages(): Promise<Photo[]> {
       uploaded_at: img.uploaded_at
     }));
   } catch (error) {
-    console.error('Failed to fetch carousel images:', error);
     return [];
   }
 }
@@ -74,7 +64,7 @@ export async function fetchCarouselImages(): Promise<Photo[]> {
 export async function fetchGalleryImages(): Promise<Photo[]> {
   try {
     const images = await fetchImages();
-    return images.map(img => ({
+    return images.map((img: DatabaseImage) => ({
       id: img.id,
       url: img.url, // Primary field
       src: img.url, // Alias for backward compatibility
@@ -88,7 +78,6 @@ export async function fetchGalleryImages(): Promise<Photo[]> {
       uploaded_at: img.uploaded_at
     }));
   } catch (error) {
-    console.error('Failed to fetch gallery images:', error);
     return [];
   }
 }
@@ -108,7 +97,6 @@ export async function fetchCategories(): Promise<Category[]> {
       }))
     ];
   } catch (error) {
-    console.error('Failed to fetch categories:', error);
     // Return default categories on error
     return [
       { id: 'all', name: 'All Work', count: 0 },
@@ -129,35 +117,27 @@ export function getImagesByCategory(images: Photo[], categoryId: string): Photo[
   return images.filter(img => img.gallery === categoryId || img.category === categoryId);
 }
 
-// Function to get featured images - most recent from each gallery
+// Function to get featured images - most recent from portrait and weddings galleries
 export async function getFeaturedImages(count: number = 6): Promise<DatabaseImage[]> {
   try {
-    // Get actual galleries from database
-    const galleries = await getGalleries();
     const allImages = await fetchImages();
-    const featuredImages: DatabaseImage[] = [];
     
-    // For each actual gallery, find the most recent image
-    for (const gallery of galleries) {
-      const galleryImages = allImages
-        .filter(img => img.gallery === gallery.name || img.gallery === gallery.id)
-        .sort((a, b) => {
-          // Sort by uploaded_at descending (most recent first)
-          const dateA = a.uploaded_at ? new Date(a.uploaded_at).getTime() : 0;
-          const dateB = b.uploaded_at ? new Date(b.uploaded_at).getTime() : 0;
-          return dateB - dateA;
-        });
-      
-      // Take the most recent image from this gallery
-      if (galleryImages.length > 0) {
-        featuredImages.push(galleryImages[0]);
-      }
-    }
+    // Filter images to only include portrait and weddings galleries
+    const portraitAndWeddingImages = allImages.filter((img: DatabaseImage) => {
+      const gallery = img.gallery.toLowerCase();
+      return gallery.includes('portrait') || gallery.includes('weddings');
+    });
+    
+    // Sort by uploaded_at descending (most recent first)
+    const sortedImages = portraitAndWeddingImages.sort((a: DatabaseImage, b: DatabaseImage) => {
+      const dateA = a.uploaded_at ? new Date(a.uploaded_at).getTime() : 0;
+      const dateB = b.uploaded_at ? new Date(b.uploaded_at).getTime() : 0;
+      return dateB - dateA;
+    });
     
     // Return only the requested count
-    return featuredImages.slice(0, count);
+    return sortedImages.slice(0, count);
   } catch (error) {
-    console.error('Failed to get featured images:', error);
     return [];
   }
 }

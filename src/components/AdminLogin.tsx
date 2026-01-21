@@ -29,7 +29,6 @@ export function AdminLogin({ onLogin }: AdminLoginProps) {
       
       // Log security events for monitoring
       if (error.message?.includes('locked')) {
-        console.warn('Account locked due to too many failed attempts:', { email, attempts: loginAttempts + 1 });
       }
     } finally {
       setLoading(false);
@@ -37,11 +36,11 @@ export function AdminLogin({ onLogin }: AdminLoginProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-white flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
         {/* Logo */}
         <div className="flex justify-center mb-8">
-          <div className="bg-orange-500 p-3 rounded-full">
+          <div className="bg-black p-3 rounded-full">
             <Camera className="w-8 h-8 text-white" />
           </div>
         </div>
@@ -102,7 +101,7 @@ export function AdminLogin({ onLogin }: AdminLoginProps) {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
                 placeholder="your@email.com"
                 required
               />
@@ -122,7 +121,7 @@ export function AdminLogin({ onLogin }: AdminLoginProps) {
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="pl-10 pr-10 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="pl-10 pr-10 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
                 placeholder="•••••••••"
                 required
               />
@@ -143,10 +142,10 @@ export function AdminLogin({ onLogin }: AdminLoginProps) {
           <button
             type="submit"
             disabled={loading || loginAttempts >= 5}
-            className={`w-full font-medium py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors ${
+            className={`w-full font-medium py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors ${
               loading || loginAttempts >= 5
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-orange-500 hover:bg-orange-600 text-white'
+                : 'bg-black hover:bg-gray-800 text-white'
             }`}
           >
             {loading ? (

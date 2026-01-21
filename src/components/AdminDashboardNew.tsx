@@ -76,12 +76,10 @@ export function AdminDashboard() {
 
   // Client-side filtering effect (like the actual website)
   useEffect(() => {
-    console.log('Filtering images for gallery:', selectedGallery);
     const filteredImages = selectedGallery === 'all'
       ? allImages
       : allImages.filter(img => img.gallery === selectedGallery);
     
-    console.log(`Filtered to ${filteredImages.length} images from ${allImages.length} total images`);
     setImages(filteredImages);
   }, [selectedGallery, allImages]); // Re-run when gallery or allImages change
 
@@ -101,7 +99,6 @@ export function AdminDashboard() {
       
       setSiteContent(contentMap);
     } catch (error) {
-      console.error('Failed to load content:', error);
       showNotification('error', 'Failed to load content. Using defaults.');
     } finally {
       setContentLoading(false);
@@ -111,7 +108,6 @@ export function AdminDashboard() {
   const loadData = async () => {
     try {
       setLoading(true);
-      console.log('Loading data for gallery:', selectedGallery);
       
       let imagesData = [];
       let galleriesData = [];
@@ -123,14 +119,11 @@ export function AdminDashboard() {
           getGalleries(),
         ]);
       } catch (error) {
-        console.error('Error loading data, trying fallback:', error);
         
         // Fallback: try loading galleries first, then images with shorter timeout
         try {
           galleriesData = await getGalleries();
-          console.log('Galleries loaded in fallback');
         } catch (galleryError) {
-          console.error('Failed to load galleries in fallback:', galleryError);
           showNotification('error', 'Failed to load galleries. Please check your connection.');
           return;
         }
@@ -139,14 +132,11 @@ export function AdminDashboard() {
         try {
           imagesData = await fetchImages(); // Always fetch all images
         } catch (imageError) {
-          console.error('Failed to load images in fallback:', imageError);
           showNotification('error', 'Failed to load images. Please refresh the page.');
           return;
         }
       }
       
-      console.log('Raw images data:', imagesData);
-      console.log('Images data length:', imagesData?.length);
       
       // Deduplicate images by ID to prevent duplicates
       const uniqueImages = imagesData.filter((image: DatabaseImage, index: number, self: DatabaseImage[]) => 
@@ -158,11 +148,8 @@ export function AdminDashboard() {
       const duplicateIds = imageIds.filter((id: string, index: number) => imageIds.indexOf(id) !== index);
       
       if (duplicateIds.length > 0) {
-        console.warn('Found duplicate image IDs:', duplicateIds);
       }
       
-      console.log(`Loaded ${imagesData.length} images, deduplicated to ${uniqueImages.length} unique images`);
-      console.log('Selected gallery filter:', selectedGallery);
       
       // Only update state if component is still mounted and data has actually changed
       if (mountedRef.current) {
@@ -170,17 +157,12 @@ export function AdminDashboard() {
         const uniqueImageIds = new Set<string>();
         const trulyUniqueImages = uniqueImages.filter((image: DatabaseImage) => {
           if (uniqueImageIds.has(image.id)) {
-            console.warn('Duplicate image ID found:', image.id);
             return false;
           }
           uniqueImageIds.add(image.id);
           return true;
         });
         
-        console.log(`Final unique images count: ${trulyUniqueImages.length}`);
-        console.log('Gallery of each image:', trulyUniqueImages.map((img: DatabaseImage) => ({ id: img.id, gallery: img.gallery, title: img.title })));
-        console.log('Expected gallery filter:', selectedGallery);
-        console.log('Images that match filter:', trulyUniqueImages.filter((img: DatabaseImage) => selectedGallery === 'all' || img.gallery === selectedGallery));
         setAllImages(trulyUniqueImages); // Store all images
         setGalleries(galleriesData);
       }
@@ -190,7 +172,6 @@ export function AdminDashboard() {
         showNotification('info', 'Database connected! Upload your first images to get started.');
       }
     } catch (error) {
-      console.error('Failed to load data:', error);
       showNotification('error', 'Failed to load data');
     } finally {
       setLoading(false);
@@ -202,13 +183,10 @@ export function AdminDashboard() {
       setContentLoading(true);
       setSaveSuccess(false);
       
-      console.log('Current siteContent state before saving:', siteContent);
-      console.log('Available sections:', Object.keys(siteContent));
       
       // Save each content section to database
       const savePromises = Object.entries(siteContent).map(async ([section, content]) => {
         try {
-          console.log(`Saving section: ${section} with content:`, content);
           
           // Determine content type based on section
           let contentType: 'text' | 'image' | 'stats' | 'services' = 'text';
@@ -221,16 +199,13 @@ export function AdminDashboard() {
           }
           
           const result = await updateSiteContent(section, content, contentType);
-          console.log(`Save result for ${section}:`, result);
           return result;
         } catch (error) {
-          console.error(`Failed to save ${section}:`, error);
           throw error;
         }
       });
       
-      const results = await Promise.all(savePromises);
-      console.log('All save operations completed, results:', results);
+      await Promise.all(savePromises);
       
       setSaveSuccess(true);
       showNotification('success', 'All content saved successfully!');
@@ -238,7 +213,6 @@ export function AdminDashboard() {
       // Reset success state after 3 seconds
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (error) {
-      console.error('Failed to save content:', error);
       showNotification('error', 'Failed to save content. Please try again.');
     } finally {
       setContentLoading(false);
@@ -256,7 +230,6 @@ export function AdminDashboard() {
       showNotification('success', `Updated dimensions for ${result.updated} out of ${result.total} images`);
       await loadData(); // Refresh the data
     } catch (error) {
-      console.error('Failed to update dimensions:', error);
       showNotification('error', 'Failed to update image dimensions');
     } finally {
       setUpdatingDimensions(false);
@@ -304,7 +277,6 @@ export function AdminDashboard() {
       showNotification('success', 'Image deleted successfully');
       await loadData(); // Refresh galleries count
     } catch (error) {
-      console.error('Failed to delete image:', error);
       showNotification('error', 'Failed to delete image');
     }
   };
@@ -331,7 +303,6 @@ export function AdminDashboard() {
       setEditForm({});
       showNotification('success', 'Image updated successfully');
     } catch (error) {
-      console.error('Failed to update image:', error);
       showNotification('error', 'Failed to update image');
     }
   };
@@ -382,14 +353,6 @@ export function AdminDashboard() {
       setSelectedFiles([]); // Clear selected files
       await loadData();
     } catch (error: any) {
-      console.error('Upload failed - Full error:', error);
-      console.error('Upload failed - Error details:', {
-        message: error?.message,
-        status: error?.status,
-        statusText: error?.statusText,
-        name: error?.name,
-        stack: error?.stack
-      });
       
       // Show more specific error messages
       if (error?.message?.includes('JWT')) {
@@ -466,7 +429,7 @@ export function AdminDashboard() {
               onClick={() => setActiveTab('galleries')}
               className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                 activeTab === 'galleries' 
-                  ? 'bg-orange-500 text-white' 
+                  ? 'bg-black text-white' 
                   : 'hover:bg-gray-100 text-gray-700'
               }`}
             >
@@ -478,7 +441,7 @@ export function AdminDashboard() {
               onClick={() => setActiveTab('upload')}
               className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                 activeTab === 'upload' 
-                  ? 'bg-orange-500 text-white' 
+                  ? 'bg-black text-white' 
                   : 'hover:bg-gray-100 text-gray-700'
               }`}
             >
@@ -490,7 +453,7 @@ export function AdminDashboard() {
               onClick={() => setActiveTab('content')}
               className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                 activeTab === 'content' 
-                  ? 'bg-orange-500 text-white' 
+                  ? 'bg-black text-white' 
                   : 'hover:bg-gray-100 text-gray-700'
               }`}
             >
@@ -502,7 +465,7 @@ export function AdminDashboard() {
               onClick={() => setActiveTab('settings')}
               className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                 activeTab === 'settings' 
-                  ? 'bg-orange-500 text-white' 
+                  ? 'bg-black text-white' 
                   : 'hover:bg-gray-100 text-gray-700'
               }`}
             >
@@ -565,7 +528,7 @@ export function AdminDashboard() {
                   onClick={() => setSelectedGallery('all')}
                   className={`px-4 py-2 rounded-lg ${
                     selectedGallery === 'all'
-                      ? 'bg-orange-500 text-white'
+                      ? 'bg-black text-white'
                       : 'bg-white border hover:bg-gray-50'
                   }`}
                 >
@@ -575,12 +538,11 @@ export function AdminDashboard() {
                   <button
                     key={gallery.id}
                     onClick={() => {
-                      console.log('Gallery button clicked:', { galleryId: gallery.id, galleryName: gallery.name });
                       setSelectedGallery(gallery.id);
                     }}
                     className={`px-4 py-2 rounded-lg ${
                       selectedGallery === gallery.id
-                        ? 'bg-orange-500 text-white'
+                        ? 'bg-black text-white'
                         : 'bg-white border hover:bg-gray-50'
                     }`}
                   >
@@ -688,18 +650,18 @@ export function AdminDashboard() {
                               />
                               <button
                                 onClick={addEditTag}
-                                className="px-3 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+                                className="px-3 py-2 bg-black text-white rounded hover:bg-gray-800"
                               >
                                 <Plus className="w-4 h-4" />
                               </button>
                             </div>
                             <div className="flex flex-wrap gap-1">
                               {editForm.tags?.map(tag => (
-                                <span key={tag} className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded flex items-center gap-1">
+                                <span key={tag} className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded flex items-center gap-1">
                                   {tag}
                                   <button
                                     onClick={() => removeEditTag(tag)}
-                                    className="hover:text-orange-600"
+                                    className="hover:text-gray-600"
                                   >
                                     <X className="w-3 h-3" />
                                   </button>
@@ -743,7 +705,7 @@ export function AdminDashboard() {
 
           {/* Upload Tab */}
           {activeTab === 'upload' && (
-            <div className="max-w-2xl mx-auto">
+            <div className="w-full">
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h2 className="text-xl font-semibold mb-6">Upload Images</h2>
                 
@@ -807,18 +769,18 @@ export function AdminDashboard() {
                       />
                       <button
                         onClick={addTag}
-                        className="px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
+                        className="px-3 py-2 bg-black text-white rounded-lg hover:bg-gray-800"
                       >
                         <Plus className="w-4 h-4" />
                       </button>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {uploadForm.tags.map(tag => (
-                        <span key={tag} className="text-sm bg-orange-100 text-orange-800 px-3 py-1 rounded-full flex items-center gap-2">
+                        <span key={tag} className="text-sm bg-gray-100 text-gray-800 px-3 py-1 rounded-full flex items-center gap-2">
                           {tag}
                           <button
                             onClick={() => removeTag(tag)}
-                            className="hover:text-orange-600"
+                            className="hover:text-gray-600"
                           >
                             <X className="w-3 h-3" />
                           </button>
@@ -870,7 +832,7 @@ export function AdminDashboard() {
                     <button
                       onClick={handleUploadImages}
                       disabled={uploading || !uploadForm.gallery}
-                      className="w-full px-4 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      className="w-full px-4 py-3 bg-black text-white rounded-lg hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                       {uploading ? (
                         <>
@@ -898,7 +860,7 @@ export function AdminDashboard() {
 
           {/* Settings Tab */}
           {activeTab === 'settings' && (
-            <div className="max-w-2xl mx-auto">
+            <div className="w-full">
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h2 className="text-xl font-semibold mb-6">Settings</h2>
                 <div className="space-y-4">
@@ -942,7 +904,7 @@ export function AdminDashboard() {
 
           {/* Content Management Tab */}
           {activeTab === 'content' && (
-            <div className="max-w-4xl mx-auto">
+            <div className="w-full">
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h2 className="text-xl font-semibold mb-6">Website Content Management</h2>
                 
@@ -1442,12 +1404,11 @@ export function AdminDashboard() {
 
                                 showNotification('success', 'Profile image uploaded successfully!');
                               } catch (error) {
-                                console.error('Failed to upload profile image:', error);
                                 showNotification('error', 'Failed to upload profile image');
                               }
                             }
                           }}
-                          className="w-full px-3 py-2 border rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100"
+                          className="w-full px-3 py-2 border rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
                         />
                       </div>
                       {siteContent[CONTENT_SECTIONS.ABOUT_IMAGE]?.imageUrl && (
@@ -1468,7 +1429,7 @@ export function AdminDashboard() {
               
               {/* Fixed Save Button */}
               <div className="sticky bottom-0 bg-white border-t p-4 mt-6">
-                <div className="max-w-4xl mx-auto flex justify-end gap-4">
+                <div className="w-full flex justify-end gap-4">
                   <button
                     onClick={loadContent}
                     className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 flex items-center gap-2 text-lg font-medium"
@@ -1488,7 +1449,7 @@ export function AdminDashboard() {
                   </button>
                   <button
                     onClick={handleSaveAllContent}
-                    className="px-8 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 flex items-center gap-2 text-lg font-medium shadow-lg disabled:bg-gray-300 disabled:cursor-not-allowed border-2 border-orange-500"
+                    className="px-8 py-3 bg-black text-white rounded-lg hover:bg-gray-800 flex items-center gap-2 text-lg font-medium shadow-lg disabled:bg-gray-300 disabled:cursor-not-allowed border-2 border-black"
                     disabled={contentLoading}
                   >
                     <Save className="w-5 h-5" />

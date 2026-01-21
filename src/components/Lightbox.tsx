@@ -1,3 +1,14 @@
+/**
+ * MIGRATION NOTE:
+ * Source: src/components/Lightbox.tsx
+ * Destination: src/components/Lightbox.tsx (updated for Next.js)
+ * This component needs 'use client' because it uses useState, useRef, touch interactions, and browser-only features.
+ * The lightbox functionality is preserved exactly from the original implementation.
+ * Any deviation is unintentional and should be flagged.
+ */
+
+'use client';
+
 import React, { useRef, useState } from 'react';
 import { X, ChevronLeft, ChevronRight, Download, Share2 } from 'lucide-react';
 import type { DatabaseImage } from '../lib/supabase';
@@ -139,9 +150,9 @@ export function Lightbox({ photo, images, currentIndex, onClose, onNext, onPrevi
         </div>
 
         {/* Metadata Panel - Tailwind: bg-white p-6 rounded-lg max-w-md */}
-        <div className="bg-white p-6 rounded-lg max-w-md w-full md:w-96">
-          <h2 className="text-2xl sm:text-3xl mb-3 text-gray-900">{photo.title}</h2>
-          <p className="text-gray-300 text-sm">
+        <div className="bg-white dark:bg-gray-900 p-6 rounded-lg max-w-md w-full md:w-96">
+          <h2 className="text-2xl sm:text-3xl mb-3 text-gray-900 dark:text-white">{photo.title}</h2>
+          <p className="text-gray-300 dark:text-gray-400 text-sm">
             {photo.gallery || 'Uncategorized'}
           </p>
           {/* Tags - Tailwind: flex flex-wrap gap-2 mb-4 */}
@@ -157,13 +168,13 @@ export function Lightbox({ photo, images, currentIndex, onClose, onNext, onPrevi
           </div>
 
           {/* Additional Info */}
-          <div className="border-t border-gray-200 pt-4 text-sm text-gray-500">
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-4 text-sm text-gray-500 dark:text-gray-400">
             <p className="mb-2">
-              <span className="font-semibold text-gray-700">Gallery:</span>{' '}
+              <span className="font-semibold text-gray-700 dark:text-gray-300">Gallery:</span>{' '}
               <span className="capitalize">{photo.gallery || 'Uncategorized'}</span>
             </p>
             <p>
-              <span className="font-semibold text-gray-700">Dimensions:</span>{' '}
+              <span className="font-semibold text-gray-700 dark:text-gray-300">Dimensions:</span>{' '}
               {photo.width} × {photo.height}
             </p>
           </div>

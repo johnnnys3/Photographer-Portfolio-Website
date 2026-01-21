@@ -79,13 +79,13 @@ export function ShareDownloadPanel({ image, onClose }: ShareDownloadPanelProps) 
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-900 rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-semibold text-gray-900">Share & Download</h2>
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Share & Download</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -102,15 +102,15 @@ export function ShareDownloadPanel({ image, onClose }: ShareDownloadPanelProps) 
               className="w-full h-full object-cover"
             />
           </div>
-          <h3 className="font-medium text-gray-900">{image.title || 'Untitled'}</h3>
+          <h3 className="font-medium text-gray-900 dark:text-white">{image.title || 'Untitled'}</h3>
           {image.description && (
-            <p className="text-sm text-gray-600 mt-1">{image.description}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{image.description}</p>
           )}
         </div>
 
         {/* Share Options */}
-        <div className="p-6 border-b">
-          <h3 className="font-medium text-gray-900 mb-4">Share</h3>
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="font-medium text-gray-900 dark:text-white mb-4">Share</h3>
           
           {/* Web Share API */}
           {shareManager.isWebShareSupported() && (
@@ -151,7 +151,7 @@ export function ShareDownloadPanel({ image, onClose }: ShareDownloadPanelProps) 
           {/* Copy Link */}
           <button
             onClick={handleCopyLink}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           >
             {copiedLink ? <Check className="w-5 h-5 text-green-600" /> : <Copy className="w-5 h-5" />}
             {copiedLink ? 'Link Copied!' : 'Copy Link'}
@@ -166,8 +166,8 @@ export function ShareDownloadPanel({ image, onClose }: ShareDownloadPanelProps) 
         </div>
 
         {/* Download Options */}
-        <div className="p-6 border-b">
-          <h3 className="font-medium text-gray-900 mb-4">Download</h3>
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="font-medium text-gray-900 dark:text-white mb-4">Download</h3>
           
           {/* Quick Download */}
           <button
@@ -181,7 +181,7 @@ export function ShareDownloadPanel({ image, onClose }: ShareDownloadPanelProps) 
           {/* Advanced Options Toggle */}
           <button
             onClick={() => setShowDownloadOptions(!showDownloadOptions)}
-            className="w-full text-left px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            className="w-full text-left px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           >
             {showDownloadOptions ? 'Hide' : 'Show'} Advanced Options
           </button>
@@ -191,7 +191,7 @@ export function ShareDownloadPanel({ image, onClose }: ShareDownloadPanelProps) 
             <div className="mt-4 space-y-4">
               {/* Format Selection */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Format</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Format</label>
                 <select
                   value={downloadFormat}
                   onChange={(e) => setDownloadFormat(e.target.value)}
@@ -207,7 +207,7 @@ export function ShareDownloadPanel({ image, onClose }: ShareDownloadPanelProps) 
 
               {/* Quality Slider */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Quality: {Math.round(downloadQuality * 100)}%
                 </label>
                 <input
@@ -234,12 +234,12 @@ export function ShareDownloadPanel({ image, onClose }: ShareDownloadPanelProps) 
 
         {/* Embed Options */}
         <div className="p-6">
-          <h3 className="font-medium text-gray-900 mb-4">Embed</h3>
+          <h3 className="font-medium text-gray-900 dark:text-white mb-4">Embed</h3>
           
           {/* Embed Code Toggle */}
           <button
             onClick={() => setShowEmbedCode(!showEmbedCode)}
-            className="w-full text-left px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors mb-4"
+            className="w-full text-left px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors mb-4"
           >
             {showEmbedCode ? 'Hide' : 'Show'} Embed Code
           </button>
@@ -255,7 +255,7 @@ export function ShareDownloadPanel({ image, onClose }: ShareDownloadPanelProps) 
               />
               <button
                 onClick={handleCopyEmbed}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               >
                 {copiedEmbed ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
                 {copiedEmbed ? 'Embed Code Copied!' : 'Copy Embed Code'}

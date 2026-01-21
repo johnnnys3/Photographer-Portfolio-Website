@@ -57,16 +57,16 @@ export function GalleryCard({ photo, onClick }: GalleryCardProps) {
     >
       {/* Image Container with proper aspect ratio */}
       <div 
-        className="relative w-full bg-gray-100"
+        className="relative w-full bg-gray-100 dark:bg-gray-800"
         style={{ aspectRatio }}
       >
         {imageLoading && !imageError && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-200 animate-pulse">
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700 animate-pulse">
             <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
           </div>
         )}
         {imageError ? (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800">
             <img
               src={ERROR_IMG_SRC}
               alt="Error loading image"

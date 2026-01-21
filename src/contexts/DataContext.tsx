@@ -1,3 +1,14 @@
+/**
+ * MIGRATION NOTE:
+ * Source: src/contexts/DataContext.tsx
+ * Destination: src/contexts/DataContext.tsx (updated for Next.js)
+ * This context needs 'use client' because it uses React hooks and browser-only data fetching.
+ * The data management logic is preserved exactly from the original implementation.
+ * Any deviation is unintentional and should be flagged.
+ */
+
+'use client';
+
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { fetchImages, getGalleries, testSupabaseConnection } from '../lib/storage';
 import type { DatabaseImage } from '../lib/supabase';

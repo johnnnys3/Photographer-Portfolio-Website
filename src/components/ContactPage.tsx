@@ -1,5 +1,16 @@
+/**
+ * MIGRATION NOTE:
+ * Source: src/components/ContactPage.tsx
+ * Destination: src/components/ContactPage.tsx (updated for Next.js)
+ * This component needs 'use client' because it uses useState, form handling, and browser-only features.
+ * The contact form functionality is preserved exactly from the original implementation.
+ * Any deviation is unintentional and should be flagged.
+ */
+
+'use client';
+
 import React, { useState, useEffect } from 'react';
-import { Mail, Phone, MapPin, Instagram, Twitter, Facebook } from 'lucide-react';
+import { Mail, Phone, MapPin, Instagram, Twitter, Facebook, Linkedin } from 'lucide-react';
 import { getSiteContent, CONTENT_SECTIONS, DEFAULT_CONTENT } from '../services/contentService';
 import { FormTextInput, FormEmailInput, FormTextarea } from './FormInput';
 import { createContactFormValidator } from '../lib/formValidation';
@@ -122,22 +133,22 @@ export function ContactPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white pt-24 pb-16 px-4 sm:px-6 lg:px-8 w-full flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-black pt-24 pb-16 px-4 sm:px-6 lg:px-8 w-full flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading contact information...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black dark:border-white mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-300">Loading contact information...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white pt-24 pb-16 px-4 sm:px-6 lg:px-8 w-full">
+    <div className="min-h-screen bg-white dark:bg-black pt-24 pb-16 px-4 sm:px-6 lg:px-8 w-full">
       <div className="w-full">
         {/* Header */}
         <div className="text-center mb-16">
-          <h1 className="text-4xl sm:text-5xl mb-4 text-gray-900">Get In Touch</h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <h1 className="text-4xl sm:text-5xl mb-4 text-gray-900 dark:text-white">Get In Touch</h1>
+          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
             Have a project in mind? Let's work together to create something amazing.
           </p>
         </div>
@@ -147,28 +158,28 @@ export function ContactPage() {
           {/* Contact Information */}
           <div className="w-full md:w-1/3 space-y-8">
             <div>
-              <h2 className="text-2xl mb-6 text-gray-900">Contact Information</h2>
+              <h2 className="text-2xl mb-6 text-gray-900 dark:text-white">Contact Information</h2>
               <div className="space-y-4">
                 <div className="flex items-start gap-4">
-                  <Mail className="w-6 h-6 text-black flex-shrink-0 mt-1" />
+                  <Mail className="w-6 h-6 text-black dark:text-white flex-shrink-0 mt-1" />
                   <div>
-                    <div className="font-medium text-gray-900">Email</div>
+                    <div className="font-medium text-gray-900 dark:text-white">Email</div>
                     <a 
                       href={`mailto:${contactInfo?.email || defaultContactInfo.email}`} 
-                      className="text-gray-600 hover:text-black transition duration-300"
+                      className="text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white transition duration-300"
                     >
                       {contactInfo?.email || defaultContactInfo.email}
                     </a>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
-                  <Phone className="w-6 h-6 text-black flex-shrink-0 mt-1" />
+                  <Phone className="w-6 h-6 text-black dark:text-white flex-shrink-0 mt-1" />
                   <div>
-                    <div className="font-medium text-gray-900">Phone</div>
+                    <div className="font-medium text-gray-900 dark:text-white">Phone</div>
                     {(contactInfo?.phone || defaultContactInfo.phone) && (
                       <a 
                         href={`tel:${(contactInfo?.phone || defaultContactInfo.phone).replace(/\s/g, '')}`} 
-                        className="text-gray-600 hover:text-black transition duration-300"
+                        className="text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white transition duration-300"
                       >
                         {contactInfo?.phone || defaultContactInfo.phone}
                       </a>
@@ -176,16 +187,16 @@ export function ContactPage() {
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
-                  <MapPin className="w-6 h-6 text-black flex-shrink-0 mt-1" />
+                  <MapPin className="w-6 h-6 text-black dark:text-white flex-shrink-0 mt-1" />
                   <div>
-                    <div className="font-medium text-gray-900">Location</div>
+                    <div className="font-medium text-gray-900 dark:text-white">Location</div>
                     {(contactInfo?.location || defaultContactInfo.location) && (
-                      <div className="text-gray-600 whitespace-pre-line">
+                      <div className="text-gray-600 dark:text-gray-300 whitespace-pre-line">
                         {contactInfo?.location || defaultContactInfo.location}
                       </div>
                     )}
                     {(contactInfo?.address || defaultContactInfo.address) && (
-                      <div className="text-gray-600 whitespace-pre-line mt-1">
+                      <div className="text-gray-600 dark:text-gray-300 whitespace-pre-line mt-1">
                         {contactInfo?.address || defaultContactInfo.address}
                       </div>
                     )}
@@ -197,14 +208,15 @@ export function ContactPage() {
             {/* Social Media */}
             {socialMedia && socialMedia.length > 0 && (
               <div>
-                <h3 className="text-xl mb-4 text-gray-900">Follow Me</h3>
+                <h3 className="text-xl mb-4 text-gray-900 dark:text-white">Follow Me</h3>
                 <div className="flex gap-4">
                   {socialMedia.map((social, index) => {
                     const getIcon = () => {
                       const platform = social.platform?.toLowerCase();
-                      if (platform === 'instagram') return <Instagram className="w-6 h-6" />;
-                      if (platform === 'twitter') return <Twitter className="w-6 h-6" />;
-                      if (platform === 'facebook') return <Facebook className="w-6 h-6" />;
+                      if (platform === 'instagram') return <Instagram className="w-6 h-6 text-gray-600 dark:text-gray-300" />;
+                      if (platform === 'twitter') return <Twitter className="w-6 h-6 text-gray-600 dark:text-gray-300" />;
+                      if (platform === 'facebook') return <Facebook className="w-6 h-6 text-gray-600 dark:text-gray-300" />;
+                      if (platform === 'linkedin') return <Linkedin className="w-6 h-6 text-gray-600 dark:text-gray-300" />;
                       return null;
                     };
 
@@ -216,7 +228,7 @@ export function ContactPage() {
                         href={social.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="p-3 bg-gray-100 rounded-full hover:bg-black hover:text-white transition duration-300 ease-in-out transform hover:scale-110"
+                        className="p-3 bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-black dark:hover:bg-gray-600 hover:text-white transition duration-300 ease-in-out transform hover:scale-110"
                         aria-label={social.platform || 'Social media'}
                       >
                         {getIcon()}
@@ -229,11 +241,11 @@ export function ContactPage() {
           </div>
 
           {/* Contact Form - Tailwind: w-full md:w-2/3 p-8 bg-gray-50 rounded-lg shadow */}
-          <div className="w-full md:w-2/3 p-8 bg-gray-50 rounded-lg shadow">
-            <h2 className="text-2xl mb-6 text-gray-900">Send a Message</h2>
+          <div className="w-full md:w-2/3 p-8 bg-gray-50 dark:bg-gray-800 rounded-lg shadow">
+            <h2 className="text-2xl mb-6 text-gray-900 dark:text-white">Send a Message</h2>
             
             {submitted ? (
-              <div className="bg-green-50 border border-green-200 text-green-800 px-6 py-4 rounded-lg flex items-center gap-3">
+              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-200 px-6 py-4 rounded-lg flex items-center gap-3">
                 <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
                   <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -248,7 +260,7 @@ export function ContactPage() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Form submission error */}
                 {formErrors.submit && (
-                  <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg flex items-center gap-2">
+                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 px-4 py-3 rounded-lg flex items-center gap-2">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>

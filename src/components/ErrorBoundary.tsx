@@ -1,4 +1,6 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+"use client";
+
+import { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertCircle, RefreshCw, Home } from 'lucide-react';
 
 interface Props {
@@ -115,7 +117,7 @@ export function PageErrorBoundary({ children, context }: { children: ReactNode; 
   return (
     <ErrorBoundary 
       context={context}
-      onError={(error, errorInfo) => {
+      onError={(_error, _errorInfo) => {
         // Log page-specific errors
       }}
     >
@@ -153,7 +155,7 @@ export function AsyncErrorBoundary({ children }: { children: ReactNode }) {
   return (
     <ErrorBoundary
       context="Async Operation"
-      onError={(error, errorInfo) => {
+      onError={(_error, _errorInfo) => {
       }}
     >
       {children}

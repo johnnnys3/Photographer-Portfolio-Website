@@ -105,7 +105,7 @@ export function Navigation({ currentPage }: NavigationProps) {
             {/* Home Button - always show in center */}
             <Link
               href="/"
-              className="px-4 py-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-black dark:hover:text-white transition duration-300 font-medium"
+              className="px-4 py-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-black dark:hover:text-white transition duration-300 font-medium flex items-center"
               aria-label="Go home"
             >
               Home
@@ -116,7 +116,7 @@ export function Navigation({ currentPage }: NavigationProps) {
               <Link
                 key={link.id}
                 href={link.href}
-                className={`transition duration-300 ease-in-out ${
+                className={`transition duration-300 ease-in-out flex items-center ${
                   currentPg === link.id
                     ? 'text-black dark:text-white font-medium'
                     : 'text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white'
@@ -146,7 +146,7 @@ export function Navigation({ currentPage }: NavigationProps) {
             <div className="hidden md:block">
               <Link
                 href="/contact"
-                className="bg-black dark:bg-white text-white dark:text-black px-6 py-2 rounded-lg transition duration-300 ease-in-out hover:bg-gray-800 dark:hover:bg-gray-200"
+                className="bg-black dark:bg-white text-white dark:text-black px-6 py-2 rounded-lg transition duration-300 ease-in-out hover:bg-gray-800 dark:hover:bg-gray-200 flex items-center"
               >
                 Book Session
               </Link>

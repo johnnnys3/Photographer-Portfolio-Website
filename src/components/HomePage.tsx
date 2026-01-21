@@ -72,15 +72,15 @@ export function HomePage({ onImageClick }: HomePageProps) {
   return (
     <div className="min-h-screen bg-white dark:bg-black">
       {/* Hero Section - Photography Focus */}
-      <div className="bg-white dark:bg-black py-24 px-4 sm:px-6 lg:px-8 w-full">
-        <div className="w-full max-w-4xl mx-auto text-center">
+      <div className="bg-white dark:bg-black px-4 sm:px-6 lg:px-8 w-full flex items-center justify-center" style={{ minHeight: 'calc(100vh - 64px)' }}>
+        <div className="w-full max-w-6xl mx-auto text-center">
           {/* Main Heading */}
-          <h1 className="text-4xl sm:text-6xl mb-6 text-black dark:text-white font-bold leading-tight">
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl mb-6 text-black dark:text-white font-bold leading-tight">
             Capturing moments. Creating memories.
           </h1>
           
           {/* Subtitle */}
-          <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 mb-12 max-w-2xl mx-auto">
+          <p className="text-lg sm:text-xl lg:text-2xl text-gray-600 dark:text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
             Professional photography that tells your story through stunning visuals and creative composition.
           </p>
           
@@ -98,20 +98,20 @@ export function HomePage({ onImageClick }: HomePageProps) {
 
       {/* Featured Gallery Section - Grid */}
       <div className="bg-white dark:bg-black py-16 px-4 sm:px-6 lg:px-8 w-full">
-        <div className="w-full max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl sm:text-4xl mb-8 text-black dark:text-white text-center font-bold">
+        <div className="w-full max-w-7xl mx-auto">
+          <h2 className="text-3xl sm:text-4xl mb-12 text-black dark:text-white text-center font-bold">
             Featured Gallery
           </h2>
           
           {/* Grid Layout */}
           {dataLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
               {[...Array(3)].map((_, i) => (
                 <div key={i} className="aspect-square bg-gray-200 dark:bg-gray-700 animate-pulse rounded-lg"></div>
               ))}
             </div>
           ) : currentSet.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
               {currentSet.map((image, index) => {
                 // Force portrait aspect ratio for all images
                 const aspectRatio = '3 / 4'; // Portrait ratio
@@ -189,7 +189,7 @@ export function HomePage({ onImageClick }: HomePageProps) {
 
       {/* About Preview Section */}
       <div className="bg-gray-50 dark:bg-gray-900 py-16 px-4 sm:px-6 lg:px-8 w-full">
-        <div className="w-full max-w-4xl mx-auto text-center">
+        <div className="w-full max-w-6xl mx-auto text-center">
           {/* About Label */}
           <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 tracking-wide uppercase">
             About

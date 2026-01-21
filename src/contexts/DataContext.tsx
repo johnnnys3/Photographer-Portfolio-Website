@@ -25,14 +25,11 @@ export function DataProvider({ children }: DataProviderProps) {
 
   const loadData = async () => {
     try {
-      console.log('Starting data load...');
       
       // First test Supabase connection
       const connectionTest = await testSupabaseConnection();
-      console.log('Connection test:', connectionTest);
       
       if (!connectionTest.success) {
-        console.warn('Supabase connection failed, using empty state:', connectionTest.error);
         // Don't throw error, just use empty state
         setImages([]);
         setGalleries([]);
@@ -49,11 +46,9 @@ export function DataProvider({ children }: DataProviderProps) {
         getGalleries(),
       ]);
       
-      console.log('Data loaded:', { imagesData, galleriesData });
       setImages(imagesData || []);
       setGalleries(galleriesData || []);
     } catch (err) {
-      console.error('Failed to load data:', err);
       setError(err instanceof Error ? err.message : 'Failed to load data');
       // Set empty arrays on error
       setImages([]);

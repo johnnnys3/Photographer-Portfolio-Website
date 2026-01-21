@@ -73,7 +73,7 @@ function AppContent() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white w-full">
       {/* Navigation - show on all pages except when viewing single image in lightbox */}
       <ComponentErrorBoundary componentName="Navigation">
         {!selectedImage && (
@@ -128,12 +128,7 @@ export default function App() {
   return (
     <ErrorBoundary
       context="Application Root"
-      onError={(error, errorInfo) => {
-        console.error('Application Error:', error, errorInfo);
-        // In production, send to error reporting service
-        if (process.env.NODE_ENV === 'production') {
-          // sendToErrorReporting(error, errorInfo);
-        }
+      onError={() => {
       }}
     >
       <AuthProvider>

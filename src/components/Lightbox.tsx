@@ -85,7 +85,7 @@ export function Lightbox({ photo, images, currentIndex, onClose, onNext, onPrevi
       <button
         onClick={onClose}
         className={`absolute top-4 right-4 text-white transition duration-300 p-2 bg-black bg-opacity-50 rounded-full ${
-          isTouch ? 'touch-manipulation active:scale-110' : 'hover:text-orange-500 hover:scale-110'
+          isTouch ? 'touch-manipulation active:scale-110' : 'hover:text-black hover:scale-110'
         }`}
         aria-label="Close lightbox"
       >
@@ -100,7 +100,7 @@ export function Lightbox({ photo, images, currentIndex, onClose, onNext, onPrevi
             onPrevious();
           }}
         className={`absolute left-4 top-1/2 -translate-y-1/2 text-white transition duration-300 p-3 bg-black bg-opacity-50 rounded-full ${
-          isTouch ? 'touch-manipulation active:scale-110' : 'hover:text-orange-500 hover:scale-110'
+          isTouch ? 'touch-manipulation active:scale-110' : 'hover:text-black hover:scale-110'
         }`}
           aria-label="Previous image"
         >
@@ -116,7 +116,7 @@ export function Lightbox({ photo, images, currentIndex, onClose, onNext, onPrevi
             onNext();
           }}
         className={`absolute right-4 top-1/2 -translate-y-1/2 text-white transition duration-300 p-3 bg-black bg-opacity-50 rounded-full ${
-          isTouch ? 'touch-manipulation active:scale-110' : 'hover:text-orange-500 hover:scale-110'
+          isTouch ? 'touch-manipulation active:scale-110' : 'hover:text-black hover:scale-110'
         }`}
           aria-label="Next image"
         >
@@ -149,7 +149,7 @@ export function Lightbox({ photo, images, currentIndex, onClose, onNext, onPrevi
             {photo.tags.map((tag, index) => (
               <span
                 key={index}
-                className="px-3 py-1 bg-orange-500 text-white text-sm rounded-full"
+                className="px-3 py-1 bg-black text-white text-sm rounded-full"
               >
                 #{tag}
               </span>

@@ -57,7 +57,6 @@ export class ImageShareManager {
       await navigator.clipboard.writeText(text);
       return true;
     } catch (error) {
-      console.error('Failed to copy to clipboard:', error);
       return false;
     }
   }
@@ -138,7 +137,6 @@ export class ImageShareManager {
         }
       }, `image/${format}`, quality);
     } catch (error) {
-      console.error('Failed to download image:', error);
       // Fallback to direct download
       this.downloadImage(image, { quality: 1, format: 'jpg', filename });
     }
@@ -188,7 +186,6 @@ export class ImageShareManager {
       await navigator.share(shareData);
       return true;
     } catch (error) {
-      console.error('Web Share failed:', error);
       return false;
     }
   }

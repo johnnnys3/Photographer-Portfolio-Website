@@ -34,7 +34,6 @@ export async function getSiteContent(section: string): Promise<SiteContent | nul
     if (error) throw error;
     return data;
   } catch (error) {
-    console.error('Error fetching site content:', error);
     return null;
   }
 }
@@ -50,7 +49,6 @@ export async function getAllSiteContent(): Promise<SiteContent[]> {
     if (error) throw error;
     return data || [];
   } catch (error) {
-    console.error('Error fetching all site content:', error);
     return [];
   }
 }
@@ -58,22 +56,18 @@ export async function getAllSiteContent(): Promise<SiteContent[]> {
 // Update site content
 export async function updateSiteContent(section: string, content: any, contentType: string = 'text'): Promise<SiteContent> {
   try {
-    console.log('Updating site content:', { section, content, contentType });
     
     // Get current user to check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError) {
-      console.error('Authentication error:', authError);
       throw new Error(`Authentication failed: ${authError.message}`);
     }
     
     if (!user) {
-      console.error('User not authenticated');
       throw new Error('User must be authenticated to update site content');
     }
     
-    console.log('User authenticated for content update:', user.id);
     
     const { data, error } = await supabase
       .from('site_content')
@@ -89,7 +83,6 @@ export async function updateSiteContent(section: string, content: any, contentTy
       .single();
 
     if (error) {
-      console.error('Supabase upsert error:', error);
       
       // Handle specific RLS policy errors
       if (error.code === '42501') {
@@ -99,21 +92,17 @@ export async function updateSiteContent(section: string, content: any, contentTy
       throw error;
     }
     
-    console.log('Site content updated successfully:', data);
     
     // Trigger a custom event to notify other components to refresh
     if (typeof window !== 'undefined') {
-      console.log('Dispatching siteContentUpdated event');
       window.dispatchEvent(new CustomEvent('siteContentUpdated', { 
         detail: { section, content, contentType } 
       }));
     } else {
-      console.log('Window is undefined, skipping event dispatch');
     }
     
     return data;
   } catch (error) {
-    console.error('Error updating site content:', error);
     throw error;
   }
 }

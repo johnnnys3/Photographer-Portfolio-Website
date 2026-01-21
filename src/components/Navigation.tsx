@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Menu, X, Camera } from 'lucide-react';
 
 interface NavigationProps {
@@ -17,15 +17,15 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
   ];
 
   return (
-    <nav className="bg-white shadow-sm fixed top-0 left-0 right-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="bg-white shadow-sm fixed top-0 left-0 right-0 z-50 w-full">
+      <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo - Tailwind: flex items-center space-x-2 cursor-pointer */}
           <div 
             className="flex items-center space-x-2 cursor-pointer"
             onClick={() => onNavigate('home')}
           >
-            <Camera className="w-6 h-6 text-orange-500" />
+            <Camera className="w-6 h-6 text-black" />
             <span className="text-xl font-semibold text-gray-900">
               PhotoStudio
             </span>
@@ -39,8 +39,8 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
                 onClick={() => onNavigate(link.id)}
                 className={`transition duration-300 ease-in-out ${
                   currentPage === link.id
-                    ? 'text-orange-500 font-medium'
-                    : 'text-gray-700 hover:text-orange-500'
+                    ? 'text-black font-medium'
+                    : 'text-gray-700 hover:text-black'
                 }`}
               >
                 {link.label}
@@ -75,7 +75,7 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
                 }}
                 className={`block w-full text-left px-3 py-2 rounded-md transition duration-300 ${
                   currentPage === link.id
-                    ? 'bg-orange-50 text-orange-500 font-medium'
+                    ? 'bg-gray-100 text-black font-medium'
                     : 'text-gray-700 hover:bg-gray-50'
                 }`}
               >

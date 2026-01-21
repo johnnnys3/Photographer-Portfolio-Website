@@ -126,7 +126,6 @@ export class AuthSecurityManager {
 
       return !!adminData;
     } catch (error) {
-      // Fallback to email domain check for development
       const adminDomains = ['photographer.com', 'admin.com'];
       return adminDomains.some(domain => user.email?.endsWith(domain));
     }
@@ -148,7 +147,8 @@ export class AuthSecurityManager {
       ip: 'client-side', // In production, this should come from server
     };
 
-    console.warn('Security Event:', logEntry);
+    console.log('Security event:', logEntry);
+
 
     // In production, send to security monitoring service
     if (import.meta.env.PROD) {
@@ -298,7 +298,6 @@ export async function checkSessionValidity(user: User): Promise<boolean> {
         }
       } catch (error) {
         // If admin check fails, don't sign out public users
-        console.warn('Could not verify admin status during session check');
       }
     }
     return false;

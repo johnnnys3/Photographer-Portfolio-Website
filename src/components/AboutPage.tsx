@@ -41,15 +41,13 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
           image: imageContent
         });
       } catch (error) {
-        console.error('Failed to load content:', error);
       } finally {
         setLoading(false);
       }
     };
 
     // Listen for content updates from admin panel
-    const handleContentUpdate = (event: Event) => {
-      console.log('About page - Content updated event received:', (event as CustomEvent).detail);
+    const handleContentUpdate = () => {
       loadContent();
     };
 
@@ -58,7 +56,6 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
     loadContent();
 
     return () => {
-      console.log('About page - Cleaning up event listener');
       window.removeEventListener('siteContentUpdated', handleContentUpdate);
     };
   }, []);
@@ -67,9 +64,9 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white pt-24 pb-16 px-4 flex items-center justify-center">
+      <div className="min-h-screen bg-white pt-24 pb-16 px-4 sm:px-6 lg:px-8 w-full flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
           <p className="text-gray-600">Loading content...</p>
         </div>
       </div>
@@ -77,8 +74,8 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-white pt-24 pb-16 px-4">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-white pt-24 pb-16 px-4 sm:px-6 lg:px-8 w-full">
+      <div className="w-full">
         {/* Header */}
         <div className="text-center mb-16">
           <h1 className="text-4xl sm:text-5xl mb-4 text-gray-900">About Me</h1>
@@ -113,7 +110,7 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
               )}
               <button
                 onClick={() => onNavigate('contact')}
-                className="bg-orange-500 hover:bg-orange-600 text-white py-3 px-8 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg mt-6"
+                className="bg-black hover:bg-gray-800 text-white py-3 px-8 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg mt-6"
               >
                 Get In Touch
               </button>
@@ -135,7 +132,7 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
                   key={index}
                   className="text-center p-6 bg-gray-50 rounded-lg hover:shadow-lg transition duration-300"
                 >
-                  <Icon className="w-10 h-10 text-orange-500 mx-auto mb-3" />
+                  <Icon className="w-10 h-10 text-black mx-auto mb-3" />
                   <div className="text-3xl text-gray-900 mb-2">{stat.value}</div>
                   <div className="text-gray-600">{stat.label}</div>
                 </div>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Mail, Phone, MapPin, Instagram, Twitter, Facebook } from 'lucide-react';
 import { getSiteContent, CONTENT_SECTIONS, DEFAULT_CONTENT } from '../services/contentService';
 import { FormTextInput, FormEmailInput, FormTextarea } from './FormInput';
-import { createContactFormValidator, FormValidator } from '../lib/formValidation';
+import { createContactFormValidator } from '../lib/formValidation';
 
 // Default contact information fallback
 const DEFAULT_CONTACT_INFO = {
@@ -59,15 +59,13 @@ export function ContactPage() {
           setSocialMedia(defaultSocialMedia);
         }
       } catch (error) {
-        console.error('Failed to load content:', error);
       } finally {
         setLoading(false);
       }
     };
 
     // Listen for content updates from admin panel
-    const handleContentUpdate = (event: Event) => {
-      console.log('Contact page - Content updated event received:', (event as CustomEvent).detail);
+    const handleContentUpdate = () => {
       loadContent();
     };
 
@@ -76,7 +74,6 @@ export function ContactPage() {
     loadContent();
 
     return () => {
-      console.log('Contact page - Cleaning up event listener');
       window.removeEventListener('siteContentUpdated', handleContentUpdate);
     };
   }, []);
@@ -106,7 +103,6 @@ export function ContactPage() {
         setSubmitted(false);
       }, 5000);
     } catch (error) {
-      console.error('Form submission error:', error);
       setFormErrors({ 
         submit: 'Failed to send message. Please try again later.' 
       });
@@ -126,9 +122,9 @@ export function ContactPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white pt-24 pb-16 px-4 flex items-center justify-center">
+      <div className="min-h-screen bg-white pt-24 pb-16 px-4 sm:px-6 lg:px-8 w-full flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
           <p className="text-gray-600">Loading contact information...</p>
         </div>
       </div>
@@ -136,8 +132,8 @@ export function ContactPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white pt-24 pb-16 px-4">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-white pt-24 pb-16 px-4 sm:px-6 lg:px-8 w-full">
+      <div className="w-full">
         {/* Header */}
         <div className="text-center mb-16">
           <h1 className="text-4xl sm:text-5xl mb-4 text-gray-900">Get In Touch</h1>
@@ -154,25 +150,25 @@ export function ContactPage() {
               <h2 className="text-2xl mb-6 text-gray-900">Contact Information</h2>
               <div className="space-y-4">
                 <div className="flex items-start gap-4">
-                  <Mail className="w-6 h-6 text-orange-500 flex-shrink-0 mt-1" />
+                  <Mail className="w-6 h-6 text-black flex-shrink-0 mt-1" />
                   <div>
                     <div className="font-medium text-gray-900">Email</div>
                     <a 
                       href={`mailto:${contactInfo?.email || defaultContactInfo.email}`} 
-                      className="text-gray-600 hover:text-orange-500 transition duration-300"
+                      className="text-gray-600 hover:text-black transition duration-300"
                     >
                       {contactInfo?.email || defaultContactInfo.email}
                     </a>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
-                  <Phone className="w-6 h-6 text-orange-500 flex-shrink-0 mt-1" />
+                  <Phone className="w-6 h-6 text-black flex-shrink-0 mt-1" />
                   <div>
                     <div className="font-medium text-gray-900">Phone</div>
                     {(contactInfo?.phone || defaultContactInfo.phone) && (
                       <a 
                         href={`tel:${(contactInfo?.phone || defaultContactInfo.phone).replace(/\s/g, '')}`} 
-                        className="text-gray-600 hover:text-orange-500 transition duration-300"
+                        className="text-gray-600 hover:text-black transition duration-300"
                       >
                         {contactInfo?.phone || defaultContactInfo.phone}
                       </a>
@@ -180,7 +176,7 @@ export function ContactPage() {
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
-                  <MapPin className="w-6 h-6 text-orange-500 flex-shrink-0 mt-1" />
+                  <MapPin className="w-6 h-6 text-black flex-shrink-0 mt-1" />
                   <div>
                     <div className="font-medium text-gray-900">Location</div>
                     {(contactInfo?.location || defaultContactInfo.location) && (
@@ -220,7 +216,7 @@ export function ContactPage() {
                         href={social.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="p-3 bg-gray-100 rounded-full hover:bg-orange-500 hover:text-white transition duration-300 ease-in-out transform hover:scale-110"
+                        className="p-3 bg-gray-100 rounded-full hover:bg-black hover:text-white transition duration-300 ease-in-out transform hover:scale-110"
                         aria-label={social.platform || 'Social media'}
                       >
                         {getIcon()}
@@ -317,7 +313,7 @@ export function ContactPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg disabled:transform-none disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full bg-black hover:bg-gray-800 disabled:bg-gray-300 text-white py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg disabled:transform-none disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {isSubmitting ? (
                     <>

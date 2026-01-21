@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { DatabaseImage } from '../lib/supabase';
 
@@ -51,9 +51,9 @@ export function ImageCarousel({ images }: ImageCarouselProps) {
               
               {/* Text overlay - Tailwind: absolute bottom-0 left-0 right-0 p-8 text-white */}
               <div className="absolute bottom-0 left-0 right-0 p-8 sm:p-12 text-white">
-                <div className="max-w-7xl mx-auto">
+                <div className="w-full">
                   <h2 className="text-3xl sm:text-5xl mb-2 sm:mb-4">{image.title}</h2>
-                  <p className="text-lg sm:text-xl text-gray-200 max-w-2xl">
+                  <p className="text-lg sm:text-xl text-gray-200 max-w-4xl">
                     {image.description}
                   </p>
                 </div>
@@ -90,7 +90,7 @@ export function ImageCarousel({ images }: ImageCarouselProps) {
               onClick={() => goToSlide(index)}
               className={`transition-all duration-300 rounded-full ${
                 index === currentSlide
-                  ? 'w-3.5 h-3.5 bg-orange-500'
+                  ? 'w-3.5 h-3.5 bg-black'
                   : 'w-3 h-3 bg-white bg-opacity-50 hover:bg-opacity-80'
               }`}
               aria-label={`Go to slide ${index + 1}`}

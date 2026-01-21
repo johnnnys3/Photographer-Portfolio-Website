@@ -23,7 +23,7 @@ export function HomePage({ onNavigate, onImageClick }: HomePageProps) {
   useEffect(() => {
     const loadFeaturedImages = async () => {
       try {
-        const featured = await getFeaturedImages(6);
+        const featured = await getFeaturedImages(3);
         setFeaturedImages(featured);
       } catch (error) {
       }
@@ -64,15 +64,7 @@ export function HomePage({ onNavigate, onImageClick }: HomePageProps) {
           <p className="text-lg sm:text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
             {siteContent?.subtitle || "Professional photography that tells your story through stunning visuals and creative composition."}
           </p>
-          {/* CTA Button - Tailwind: bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded */}
-          <button
-            onClick={() => onNavigate('galleries')}
-            className="bg-black hover:bg-gray-800 text-white py-3 px-8 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg inline-flex items-center gap-2 text-lg"
-          >
-            View My Work
-            <ArrowRight className="w-5 h-5" />
-          </button>
-        </div>
+                  </div>
       </div>
 
       {/* Featured Work Section - Tailwind: bg-gray-50 py-16 px-4 */}
@@ -85,7 +77,7 @@ export function HomePage({ onNavigate, onImageClick }: HomePageProps) {
           {/* Grid - Tailwind: grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 */}
           {dataLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
+              {[...Array(3)].map((_, i) => (
                 <div key={i} className="aspect-square bg-gray-200 animate-pulse rounded-lg"></div>
               ))}
             </div>
@@ -130,9 +122,9 @@ export function HomePage({ onNavigate, onImageClick }: HomePageProps) {
           <div className="text-center mt-12">
             <button
               onClick={() => onNavigate('galleries')}
-              className="text-black hover:text-gray-800 text-lg inline-flex items-center gap-2 transition duration-300"
+              className="bg-black hover:bg-gray-800 text-white py-3 px-8 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg inline-flex items-center gap-2 text-lg"
             >
-              View All Galleries
+              View My Work
               <ArrowRight className="w-5 h-5" />
             </button>
           </div>

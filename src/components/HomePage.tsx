@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { ImageCarousel } from './ImageCarousel';
-import { fetchCarouselImages, fetchGalleryImages, getFeaturedImages, Photo } from '../services/dataService';
+import { getFeaturedImages } from '../services/dataService';
+import { getSiteContent, CONTENT_SECTIONS } from '../services/contentService';
+import { useData } from '../contexts/DataContext';
 import { ArrowRight } from 'lucide-react';
+import type { DatabaseImage } from '../lib/supabase';
 
 interface HomePageProps {
   onNavigate: (page: string) => void;
@@ -9,57 +12,59 @@ interface HomePageProps {
 }
 
 export function HomePage({ onNavigate, onImageClick }: HomePageProps) {
-  const [carouselImages, setCarouselImages] = useState<Photo[]>([]);
-  const [featuredImages, setFeaturedImages] = useState<Photo[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { images, loading: dataLoading } = useData();
+  const [siteContent, setSiteContent] = useState<any>({});
+  const [featuredImages, setFeaturedImages] = useState<DatabaseImage[]>([]);
+
+  // Derive carousel images from centralized data
+  const carouselImages = images.slice(0, 6);
+
+  // Load featured images
+  useEffect(() => {
+    const loadFeaturedImages = async () => {
+      try {
+        const featured = await getFeaturedImages(6);
+        setFeaturedImages(featured);
+      } catch (error) {
+        console.error('Failed to load featured images:', error);
+      }
+    };
+    
+    loadFeaturedImages();
+  }, []);
 
   useEffect(() => {
-    const loadData = async () => {
+    const loadContent = async () => {
       try {
-        const [carouselData, galleryData] = await Promise.all([
-          fetchCarouselImages(),
-          fetchGalleryImages()
-        ]);
-        
-        setCarouselImages(carouselData);
-        setFeaturedImages(getFeaturedImages(galleryData, 6));
+        const heroContent = await getSiteContent(CONTENT_SECTIONS.HOME_HERO);
+        setSiteContent(heroContent || {});
       } catch (error) {
-        console.error('Failed to load data:', error);
-      } finally {
-        setLoading(false);
+        console.error('Failed to load site content:', error);
       }
     };
 
-    loadData();
+    loadContent();
   }, []);
 
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Carousel */}
-      {loading ? (
+      {dataLoading ? (
         <div className="h-96 bg-gray-100 flex items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
         </div>
       ) : carouselImages.length > 0 ? (
         <ImageCarousel images={carouselImages} />
-      ) : (
-        <div className="h-96 bg-gray-100 flex items-center justify-center">
-          <div className="text-center">
-            <div className="text-gray-400 mb-4">No carousel images available</div>
-            <p className="text-gray-500 text-sm">Upload images to see them here</p>
-          </div>
-        </div>
-      )}
+      ) : null}
 
       {/* CTA Section - Tailwind: bg-white py-16 px-4 */}
       <div className="bg-white py-16 px-4">
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-3xl sm:text-5xl mb-6 text-gray-900">
-            Capturing Moments, Creating Memories
+            {siteContent?.title || "Capturing Moments, Creating Memories"}
           </h1>
           <p className="text-lg sm:text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            Professional photography that tells your story through stunning visuals
-            and creative composition.
+            {siteContent?.subtitle || "Professional photography that tells your story through stunning visuals and creative composition."}
           </p>
           {/* CTA Button - Tailwind: bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded */}
           <button
@@ -80,7 +85,7 @@ export function HomePage({ onNavigate, onImageClick }: HomePageProps) {
           </h2>
           
           {/* Grid - Tailwind: grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 */}
-          {loading ? (
+          {dataLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(6)].map((_, i) => (
                 <div key={i} className="aspect-square bg-gray-200 animate-pulse rounded-lg"></div>
@@ -88,37 +93,40 @@ export function HomePage({ onNavigate, onImageClick }: HomePageProps) {
             </div>
           ) : featuredImages.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featuredImages.map((image) => (
-                <div
-                  key={image.id}
-                  onClick={() => onImageClick(image.id)}
-                  className="relative overflow-hidden rounded-lg cursor-pointer transition duration-300 ease-in-out transform hover:scale-105 shadow-md hover:shadow-xl group"
-                >
-                  <img
-                    src={image.src || image.url}
-                    alt={image.title}
-                    className="w-full h-64 object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-60 transition duration-300 ease-in-out flex items-center justify-center">
-                    <h3 className="text-white text-xl opacity-0 group-hover:opacity-100 transition duration-300">
-                      {image.title}
-                    </h3>
+              {featuredImages.map((image) => {
+                // Calculate aspect ratio from image dimensions if available, otherwise use 4:3
+                const aspectRatio = image.width && image.height 
+                  ? `${image.width} / ${image.height}`
+                  : '4 / 3';
+                
+                return (
+                  <div
+                    key={image.id}
+                    onClick={() => onImageClick(image.id)}
+                    className="relative overflow-hidden rounded-lg cursor-pointer transition duration-300 ease-in-out transform hover:scale-105 shadow-md hover:shadow-xl group"
+                  >
+                    {/* Aspect ratio container */}
+                    <div 
+                      className="relative w-full bg-gray-100"
+                      style={{ aspectRatio }}
+                    >
+                      <img
+                        src={image.url || image.src}
+                        alt={image.title}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition duration-300 ease-in-out flex items-end justify-center z-10">
+                        <h3 className="text-white text-xl font-semibold p-4">
+                          {image.title}
+                        </h3>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
-          ) : (
-            <div className="text-center py-12">
-              <div className="text-gray-400 mb-4">No featured images available</div>
-              <p className="text-gray-500 text-sm mb-6">Upload images to see them here</p>
-              <button
-                onClick={() => onNavigate('galleries')}
-                className="text-orange-500 hover:text-orange-600 underline"
-              >
-                Browse galleries
-              </button>
-            </div>
-          )}
+          ) : null}
 
           {/* View All Button */}
           <div className="text-center mt-12">

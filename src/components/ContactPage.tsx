@@ -1,5 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Mail, Phone, MapPin, Instagram, Twitter, Facebook } from 'lucide-react';
+import { getSiteContent, CONTENT_SECTIONS, DEFAULT_CONTENT } from '../services/contentService';
+import { FormTextInput, FormEmailInput, FormTextarea } from './FormInput';
+import { createContactFormValidator, FormValidator } from '../lib/formValidation';
+
+// Default contact information fallback
+const DEFAULT_CONTACT_INFO = {
+  email: "contact@photographer.com",
+  phone: "+1 (555) 123-4567",
+  location: "San Francisco, CA",
+  address: "123 Market Street, Suite 456\nSan Francisco, CA 94102"
+};
 
 export function ContactPage() {
   const [formData, setFormData] = useState({
@@ -10,23 +21,119 @@ export function ContactPage() {
   });
 
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formErrors, setFormErrors] = useState<{ [key: string]: string | null }>({});
+  
+  // Initialize form validator
+  const [validator] = useState(() => createContactFormValidator());
+  // Initialize with default content from contentService
+  const defaultContactInfo = DEFAULT_CONTENT[CONTENT_SECTIONS.CONTACT_INFO] || DEFAULT_CONTACT_INFO;
+  const defaultSocialMedia = DEFAULT_CONTENT[CONTENT_SECTIONS.SOCIAL_MEDIA] || [];
+  
+  const [contactInfo, setContactInfo] = useState<any>(defaultContactInfo);
+  const [socialMedia, setSocialMedia] = useState<any[]>(defaultSocialMedia);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    const loadContent = async () => {
+      try {
+        setLoading(true);
+        const [contactData, socialData] = await Promise.all([
+          getSiteContent(CONTENT_SECTIONS.CONTACT_INFO),
+          getSiteContent(CONTENT_SECTIONS.SOCIAL_MEDIA),
+        ]);
+        
+        // Update contact info if data is available, otherwise keep default
+        if (contactData?.content) {
+          setContactInfo(contactData.content);
+        } else {
+          // Ensure default is set if no data from service
+          setContactInfo(defaultContactInfo);
+        }
+        
+        // Update social media if data is available, otherwise keep default
+        if (socialData?.content) {
+          setSocialMedia(socialData.content);
+        } else {
+          // Ensure default is set if no data from service
+          setSocialMedia(defaultSocialMedia);
+        }
+      } catch (error) {
+        console.error('Failed to load content:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Listen for content updates from admin panel
+    const handleContentUpdate = (event: Event) => {
+      console.log('Contact page - Content updated event received:', (event as CustomEvent).detail);
+      loadContent();
+    };
+
+    window.addEventListener('siteContentUpdated', handleContentUpdate);
+
+    loadContent();
+
+    return () => {
+      console.log('Contact page - Cleaning up event listener');
+      window.removeEventListener('siteContentUpdated', handleContentUpdate);
+    };
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate form submission
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
+    
+    // Validate entire form
+    const validation = validator.validateForm(formData);
+    
+    if (!validation.isValid) {
+      setFormErrors(validation.errors);
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      // Simulate form submission
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setSubmitted(true);
+      setFormErrors({});
       setFormData({ name: '', email: '', subject: '', message: '' });
-    }, 3000);
+      
+      // Reset success message after 5 seconds
+      setTimeout(() => {
+        setSubmitted(false);
+      }, 5000);
+    } catch (error) {
+      console.error('Form submission error:', error);
+      setFormErrors({ 
+        submit: 'Failed to send message. Please try again later.' 
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+  const handleChange = (fieldName: string, value: string) => {
+    setFormData(prev => ({ ...prev, [fieldName]: value }));
+    
+    // Clear field error when user starts typing
+    if (formErrors[fieldName]) {
+      setFormErrors(prev => ({ ...prev, [fieldName]: null }));
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white pt-24 pb-16 px-4 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading contact information...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white pt-24 pb-16 px-4">
@@ -50,8 +157,11 @@ export function ContactPage() {
                   <Mail className="w-6 h-6 text-orange-500 flex-shrink-0 mt-1" />
                   <div>
                     <div className="font-medium text-gray-900">Email</div>
-                    <a href="mailto:hello@photostudio.com" className="text-gray-600 hover:text-orange-500 transition duration-300">
-                      hello@photostudio.com
+                    <a 
+                      href={`mailto:${contactInfo?.email || defaultContactInfo.email}`} 
+                      className="text-gray-600 hover:text-orange-500 transition duration-300"
+                    >
+                      {contactInfo?.email || defaultContactInfo.email}
                     </a>
                   </div>
                 </div>
@@ -59,50 +169,67 @@ export function ContactPage() {
                   <Phone className="w-6 h-6 text-orange-500 flex-shrink-0 mt-1" />
                   <div>
                     <div className="font-medium text-gray-900">Phone</div>
-                    <a href="tel:+1234567890" className="text-gray-600 hover:text-orange-500 transition duration-300">
-                      +1 (234) 567-890
-                    </a>
+                    {(contactInfo?.phone || defaultContactInfo.phone) && (
+                      <a 
+                        href={`tel:${(contactInfo?.phone || defaultContactInfo.phone).replace(/\s/g, '')}`} 
+                        className="text-gray-600 hover:text-orange-500 transition duration-300"
+                      >
+                        {contactInfo?.phone || defaultContactInfo.phone}
+                      </a>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
                   <MapPin className="w-6 h-6 text-orange-500 flex-shrink-0 mt-1" />
                   <div>
                     <div className="font-medium text-gray-900">Location</div>
-                    <div className="text-gray-600">
-                      San Francisco, CA<br />United States
-                    </div>
+                    {(contactInfo?.location || defaultContactInfo.location) && (
+                      <div className="text-gray-600 whitespace-pre-line">
+                        {contactInfo?.location || defaultContactInfo.location}
+                      </div>
+                    )}
+                    {(contactInfo?.address || defaultContactInfo.address) && (
+                      <div className="text-gray-600 whitespace-pre-line mt-1">
+                        {contactInfo?.address || defaultContactInfo.address}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Social Media */}
-            <div>
-              <h3 className="text-xl mb-4 text-gray-900">Follow Me</h3>
-              <div className="flex gap-4">
-                <a
-                  href="#"
-                  className="p-3 bg-gray-100 rounded-full hover:bg-orange-500 hover:text-white transition duration-300 ease-in-out transform hover:scale-110"
-                  aria-label="Instagram"
-                >
-                  <Instagram className="w-6 h-6" />
-                </a>
-                <a
-                  href="#"
-                  className="p-3 bg-gray-100 rounded-full hover:bg-orange-500 hover:text-white transition duration-300 ease-in-out transform hover:scale-110"
-                  aria-label="Twitter"
-                >
-                  <Twitter className="w-6 h-6" />
-                </a>
-                <a
-                  href="#"
-                  className="p-3 bg-gray-100 rounded-full hover:bg-orange-500 hover:text-white transition duration-300 ease-in-out transform hover:scale-110"
-                  aria-label="Facebook"
-                >
-                  <Facebook className="w-6 h-6" />
-                </a>
+            {socialMedia && socialMedia.length > 0 && (
+              <div>
+                <h3 className="text-xl mb-4 text-gray-900">Follow Me</h3>
+                <div className="flex gap-4">
+                  {socialMedia.map((social, index) => {
+                    const getIcon = () => {
+                      const platform = social.platform?.toLowerCase();
+                      if (platform === 'instagram') return <Instagram className="w-6 h-6" />;
+                      if (platform === 'twitter') return <Twitter className="w-6 h-6" />;
+                      if (platform === 'facebook') return <Facebook className="w-6 h-6" />;
+                      return null;
+                    };
+
+                    if (!social.url) return null;
+
+                    return (
+                      <a
+                        key={index}
+                        href={social.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-3 bg-gray-100 rounded-full hover:bg-orange-500 hover:text-white transition duration-300 ease-in-out transform hover:scale-110"
+                        aria-label={social.platform || 'Social media'}
+                      >
+                        {getIcon()}
+                      </a>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Contact Form - Tailwind: w-full md:w-2/3 p-8 bg-gray-50 rounded-lg shadow */}
@@ -110,85 +237,101 @@ export function ContactPage() {
             <h2 className="text-2xl mb-6 text-gray-900">Send a Message</h2>
             
             {submitted ? (
-              <div className="bg-green-50 border border-green-200 text-green-800 px-6 py-4 rounded-lg">
-                Thank you for your message! I'll get back to you soon.
+              <div className="bg-green-50 border border-green-200 text-green-800 px-6 py-4 rounded-lg flex items-center gap-3">
+                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold">Message Sent Successfully!</h3>
+                  <p className="text-sm mt-1">Thank you for your message! I'll get back to you soon.</p>
+                </div>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Name Input - Tailwind: w-full px-4 py-3 rounded-lg border border-gray-300 */}
-                <div>
-                  <label htmlFor="name" className="block text-gray-700 mb-2">
-                    Name *
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition duration-300"
-                    placeholder="Your name"
-                  />
-                </div>
+                {/* Form submission error */}
+                {formErrors.submit && (
+                  <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>{formErrors.submit}</span>
+                  </div>
+                )}
+
+                {/* Name Input */}
+                <FormTextInput
+                  name="name"
+                  label="Name"
+                  placeholder="Your name"
+                  value={formData.name}
+                  onChange={(value) => handleChange('name', value)}
+                  validator={validator}
+                  required
+                  validateOnBlur
+                  validateOnChange
+                />
 
                 {/* Email Input */}
-                <div>
-                  <label htmlFor="email" className="block text-gray-700 mb-2">
-                    Email *
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition duration-300"
-                    placeholder="your.email@example.com"
-                  />
-                </div>
+                <FormEmailInput
+                  name="email"
+                  label="Email"
+                  placeholder="your.email@example.com"
+                  value={formData.email}
+                  onChange={(value) => handleChange('email', value)}
+                  validator={validator}
+                  required
+                  validateOnBlur
+                  validateOnChange
+                />
 
                 {/* Subject Input */}
-                <div>
-                  <label htmlFor="subject" className="block text-gray-700 mb-2">
-                    Subject *
-                  </label>
-                  <input
-                    type="text"
-                    id="subject"
-                    name="subject"
-                    value={formData.subject}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition duration-300"
-                    placeholder="What's this about?"
-                  />
-                </div>
+                <FormTextInput
+                  name="subject"
+                  label="Subject"
+                  placeholder="What's this about?"
+                  value={formData.subject}
+                  onChange={(value) => handleChange('subject', value)}
+                  validator={validator}
+                  required
+                  validateOnBlur
+                  validateOnChange
+                />
 
                 {/* Message Textarea */}
-                <div>
-                  <label htmlFor="message" className="block text-gray-700 mb-2">
-                    Message *
-                  </label>
-                  <textarea
-                    id="message"
-                    name="message"
-                    value={formData.message}
-                    onChange={handleChange}
-                    required
-                    rows={6}
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition duration-300 resize-none"
-                    placeholder="Tell me about your project..."
-                  />
-                </div>
+                <FormTextarea
+                  name="message"
+                  label="Message"
+                  placeholder="Tell me about your project..."
+                  value={formData.message}
+                  onChange={(value) => handleChange('message', value)}
+                  validator={validator}
+                  rows={6}
+                  required
+                  validateOnBlur
+                  validateOnChange
+                />
 
-                {/* Submit Button - Tailwind: bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded */}
+                {/* Submit Button */}
                 <button
                   type="submit"
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+                  disabled={isSubmitting}
+                  className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg disabled:transform-none disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  Send Message
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                      Send Message
+                    </>
+                  )}
                 </button>
               </form>
             )}

@@ -8,22 +8,25 @@ import { AdminDashboard } from './components/AdminDashboardNew';
 import { AdminLogin } from './components/AdminLogin';
 import { Lightbox } from './components/Lightbox';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { fetchImages } from './lib/storage';
+import { DataProvider, useData } from './contexts/DataContext';
+import { ErrorBoundary, PageErrorBoundary, ComponentErrorBoundary } from './components/ErrorBoundary';
 import { Lock } from 'lucide-react';
 
 type Page = 'home' | 'galleries' | 'about' | 'contact' | 'admin';
 
 function AppContent() {
-  const { user, loading } = useAuth();
+  const { user, isAdmin, sessionValid } = useAuth();
+  const { images } = useData();
   const [currentPage, setCurrentPage] = useState<Page>('home');
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
-  const [images, setImages] = useState<any[]>([]);
+  const [requireAuth, setRequireAuth] = useState(false);
 
   React.useEffect(() => {
-    if (user) {
-      fetchImages().then(setImages).catch(console.error);
+    // Clear auth requirement when navigating away from admin
+    if (currentPage !== 'admin') {
+      setRequireAuth(false);
     }
-  }, [user]);
+  }, [currentPage]);
 
   const handleImageClick = (imageId: string) => {
     setSelectedImageId(imageId);
@@ -53,59 +56,64 @@ function AppContent() {
     }
   };
 
-  // Show loading screen while auth is initializing
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
+  const handleNavigate = (page: string) => {
+    // Always require authentication when navigating to admin
+    if (page === 'admin') {
+      setRequireAuth(true);
+    }
+    setCurrentPage(page as Page);
+  };
 
-  // Admin login screen
-  if (currentPage === 'admin' && !user) {
-    return <AdminLogin onLogin={() => setCurrentPage('admin')} />;
+  // Don't show loading screen for admin - let login page handle auth state
+  // Admin login screen will handle auth loading internally
+
+  // Admin login screen - check for valid admin session
+  if (currentPage === 'admin' && (!user || !isAdmin || !sessionValid || requireAuth)) {
+    return <AdminLogin onLogin={() => setRequireAuth(false)} />;
   }
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Navigation - only show on non-admin pages */}
-      {currentPage !== 'admin' && (
-        <Navigation currentPage={currentPage} onNavigate={(page: string) => setCurrentPage(page as Page)} />
-      )}
+      {/* Navigation - show on all pages except when viewing single image in lightbox */}
+      <ComponentErrorBoundary componentName="Navigation">
+        {!selectedImage && (
+          <Navigation currentPage={currentPage} onNavigate={handleNavigate} />
+        )}
+      </ComponentErrorBoundary>
 
       {/* Page Content */}
-      {currentPage === 'home' && (
-        <HomePage onNavigate={(page: string) => setCurrentPage(page as Page)} onImageClick={handleImageClick} />
-      )}
-      {currentPage === 'galleries' && (
-        <GalleryPage onImageClick={handleImageClick} />
-      )}
-      {currentPage === 'about' && (
-        <AboutPage onNavigate={(page: string) => setCurrentPage(page as Page)} />
-      )}
-      {currentPage === 'contact' && <ContactPage />}
-      {currentPage === 'admin' && user && <AdminDashboard />}
+      <PageErrorBoundary context={currentPage}>
+        {currentPage === 'home' && (
+          <HomePage onNavigate={handleNavigate} onImageClick={handleImageClick} />
+        )}
+        {currentPage === 'galleries' && (
+          <GalleryPage onImageClick={handleImageClick} />
+        )}
+        {currentPage === 'about' && (
+          <AboutPage onNavigate={handleNavigate} />
+        )}
+        {currentPage === 'contact' && <ContactPage />}
+        {currentPage === 'admin' && user && isAdmin && sessionValid && <AdminDashboard />}
+      </PageErrorBoundary>
 
       {/* Lightbox Modal */}
-      {selectedImage && (
-        <Lightbox
-          photo={selectedImage}
-          images={images}
-          currentIndex={currentIndex}
-          onClose={handleCloseLightbox}
-          onNext={handleNext}
-          onPrevious={handlePrevious}
-        />
-      )}
+      <ComponentErrorBoundary componentName="Lightbox">
+        {selectedImage && (
+          <Lightbox
+            photo={selectedImage}
+            images={images}
+            currentIndex={currentIndex}
+            onClose={handleCloseLightbox}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+          />
+        )}
+      </ComponentErrorBoundary>
 
       {/* Admin Access Button (Hidden Easter Egg) */}
       {currentPage === 'home' && (
         <button
-          onClick={() => setCurrentPage('admin')}
+          onClick={() => handleNavigate('admin')}
           className="fixed bottom-4 left-4 opacity-20 hover:opacity-100 transition duration-300 bg-gray-900 text-white p-2 rounded-full"
           aria-label="Admin access"
         >
@@ -118,8 +126,21 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <ErrorBoundary
+      context="Application Root"
+      onError={(error, errorInfo) => {
+        console.error('Application Error:', error, errorInfo);
+        // In production, send to error reporting service
+        if (process.env.NODE_ENV === 'production') {
+          // sendToErrorReporting(error, errorInfo);
+        }
+      }}
+    >
+      <AuthProvider>
+        <DataProvider>
+          <AppContent />
+        </DataProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }

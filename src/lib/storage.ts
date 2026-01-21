@@ -4,23 +4,32 @@ import type { DatabaseImage } from './supabase';
 // Function to detect image dimensions from file
 function getImageDimensions(file: File): Promise<{ width: number; height: number }> {
   return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
+    // Try to use FileReader API first to avoid CSP issues with blob URLs
+    const reader = new FileReader();
     
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve({
-        width: img.naturalWidth,
-        height: img.naturalHeight
-      });
+    reader.onload = (event) => {
+      const img = new Image();
+      
+      img.onload = () => {
+        resolve({
+          width: img.naturalWidth,
+          height: img.naturalHeight
+        });
+      };
+      
+      img.onerror = () => {
+        reject(new Error('Failed to load image for dimension detection'));
+      };
+      
+      // Use the data URL instead of blob URL to avoid CSP issues
+      img.src = event.target?.result as string;
     };
     
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error('Failed to load image for dimension detection'));
+    reader.onerror = () => {
+      reject(new Error('Failed to read file for dimension detection'));
     };
     
-    img.src = url;
+    reader.readAsDataURL(file);
   });
 }
 
@@ -113,6 +122,48 @@ function getImageDimensionsFromUrl(url: string): Promise<{ width: number; height
   });
 }
 
+// Function to ensure a gallery exists in the galleries table
+async function ensureGalleryExists(galleryName: string): Promise<void> {
+  try {
+    console.log(`Checking if gallery '${galleryName}' exists...`);
+    
+    // Check if gallery exists
+    const { data: existingGallery, error: checkError } = await supabase
+      .from('galleries')
+      .select('name')
+      .eq('name', galleryName)
+      .single();
+
+    if (checkError && checkError.code !== 'PGRST116') { // PGRST116 is "not found" error
+      console.error('Error checking gallery existence:', checkError);
+      throw checkError;
+    }
+
+    if (existingGallery) {
+      console.log(`Gallery '${galleryName}' already exists`);
+      return;
+    }
+
+    // Gallery doesn't exist, create it
+    console.log(`Creating gallery '${galleryName}'...`);
+    const { data: newGallery, error: insertError } = await supabase
+      .from('galleries')
+      .insert({ name: galleryName })
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('Error creating gallery:', insertError);
+      throw insertError;
+    }
+
+    console.log(`Gallery '${galleryName}' created successfully:`, newGallery);
+  } catch (error) {
+    console.error(`Failed to ensure gallery '${galleryName}' exists:`, error);
+    throw error;
+  }
+}
+
 // Image management functions
 export async function uploadImage(
   file: File,
@@ -120,6 +171,9 @@ export async function uploadImage(
 ) {
   try {
     console.log('Starting upload process...');
+    
+    // Ensure the gallery exists in the galleries table
+    await ensureGalleryExists(metadata.gallery);
     
     // Detect image dimensions first with fallback handling
     let dimensions: { width: number; height: number };
@@ -285,33 +339,64 @@ export async function testSupabaseConnection() {
 
 export async function fetchImages(gallery?: string) {
   try {
-    console.log('Fetching images from Supabase...');
+    console.log('\n=== FETCH IMAGES DEBUG ===');
+    console.log('Gallery parameter received:', JSON.stringify(gallery));
+    console.log('Gallery type:', typeof gallery);
+    console.log('Gallery length:', gallery?.length);
+    console.log('Gallery charCodes:', gallery?.split('').map(c => c.charCodeAt(0)));
     
+    // First, let's see ALL images and their gallery values
+    const { data: allImages, error: allError } = await supabase
+      .from('images')
+      .select('id, title, gallery')
+      .order('uploaded_at', { ascending: false });
+    
+    if (allError) {
+      console.error('Error fetching all images:', allError);
+    } else {
+      console.log('ALL IMAGES IN DATABASE:');
+      console.log('Total images:', allImages?.length);
+      console.log('Unique galleries:', [...new Set(allImages?.map(img => img.gallery))]);
+      console.log('Sample images:', allImages?.slice(0, 5).map(img => ({
+        title: img.title,
+        gallery: img.gallery,
+        galleryCharCodes: img.gallery.split('').map((c: string) => c.charCodeAt(0))
+      })));
+    }
+    
+    // Now try the filtered query
     let query = supabase
       .from('images')
       .select('*')
       .order('uploaded_at', { ascending: false });
 
+    // Always exclude 'about' gallery images from main gallery display
+    query = query.neq('gallery', 'about');
+
     if (gallery && gallery !== 'all') {
+      console.log('APPLYING GALLERY FILTER:', JSON.stringify(gallery));
       query = query.eq('gallery', gallery);
+    } else {
+      console.log('NO GALLERY FILTER - fetching all images (excluding about gallery)');
     }
 
-    console.log('Executing query...', { gallery, hasGalleryFilter: gallery && gallery !== 'all' });
-    console.log('Query details:', query.toString ? query.toString() : 'Query object');
+    console.log('Executing filtered query...');
     
-    // Add 10-second timeout
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => reject(new Error('Query timeout after 10 seconds')), 10000);
     });
     
     const { data, error } = await Promise.race([query, timeoutPromise]) as any;
     
-    console.log('Supabase response:', { 
-      dataLength: data ? data.length : 0, 
-      data: data, 
-      error,
-      gallery 
-    });
+    console.log('=== FILTERED QUERY RESULTS ===');
+    console.log('Number of images returned:', data ? data.length : 0);
+    console.log('Error:', error);
+    
+    if (data && data.length > 0) {
+      console.log('Galleries in filtered results:', 
+        [...new Set(data.map((img: any) => img.gallery))].join(', ')
+      );
+    }
     
     if (error) {
       console.error('Supabase error:', error);
@@ -323,7 +408,8 @@ export async function fetchImages(gallery?: string) {
       self.findIndex((img: any) => img.id === image.id) === index
     ) : [];
     
-    console.log(`Fetched ${uniqueImages.length} unique images for gallery: ${gallery || 'all'}`);
+    console.log(`Final result: ${uniqueImages.length} unique images for gallery: ${gallery || 'all'} (excluding about gallery)`);
+    console.log('=== END FETCH IMAGES DEBUG ===\n');
     
     return uniqueImages;
   } catch (error) {
@@ -382,16 +468,17 @@ export async function deleteImage(id: string) {
 
 export async function getGalleries() {
   try {
+    console.log('\n=== GET GALLERIES DEBUG ===');
     console.log('Fetching galleries from Supabase...');
     
-    // Query the galleries table directly
+    // Query galleries table directly, excluding 'about' gallery
     const query = supabase
       .from('galleries')
       .select('*')
+      .neq('name', 'about')
       .order('name', { ascending: true });
     
     console.log('Executing galleries query...');
-    console.log('Galleries query details:', query.toString ? query.toString() : 'Query object');
     
     // Add 10-second timeout
     const timeoutPromise = new Promise((_, reject) => {
@@ -417,15 +504,54 @@ export async function getGalleries() {
       return [];
     }
 
-    // Format galleries for dropdown
-    const result = data.map((gallery: any) => ({
-      id: gallery.name,
-      name: gallery.name,
-      count: 0 // You could add image count here if needed
-    }));
+    console.log('Raw galleries from database:');
+    data.forEach((gallery: any) => {
+      console.log(`  - "${gallery.name}" | charCodes:`, gallery.name.split('').map((c: string) => c.charCodeAt(0)));
+    });
+
+    // Get image counts for each gallery
+    const galleriesWithCounts = await Promise.all(
+      data.map(async (gallery: any) => {
+        try {
+          const { count, error: countError } = await supabase
+            .from('images')
+            .select('*', { count: 'exact', head: true })
+            .eq('gallery', gallery.name);
+          
+          if (countError) {
+            console.warn(`Failed to count images for gallery ${gallery.name}:`, countError);
+            return {
+              id: gallery.name,
+              name: gallery.name,
+              count: 0
+            };
+          }
+          
+          console.log(`Gallery "${gallery.name}" has ${count} images`);
+          
+          return {
+            id: gallery.name,
+            name: gallery.name,
+            count: count || 0
+          };
+        } catch (error) {
+          console.warn(`Error counting images for gallery ${gallery.name}:`, error);
+          return {
+            id: gallery.name,
+            name: gallery.name,
+            count: 0
+          };
+        }
+      })
+    );
     
-    console.log('Processed galleries:', result);
-    return result;
+    console.log('Processed galleries with counts:');
+    galleriesWithCounts.forEach(g => {
+      console.log(`  - ID: "${g.id}" | Name: "${g.name}" | Count: ${g.count}`);
+    });
+    console.log('=== END GET GALLERIES DEBUG ===\n');
+    
+    return galleriesWithCounts;
   } catch (error) {
     console.error('Error fetching galleries:', error);
     throw error;
@@ -500,6 +626,7 @@ export async function updateImageDimensions() {
     throw error;
   }
 }
+
 export function validateFile(file: File): { valid: boolean; error?: string } {
   const maxSize = 20 * 1024 * 1024; // 20MB
   const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];

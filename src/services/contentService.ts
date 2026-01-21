@@ -29,7 +29,7 @@ export async function getSiteContent(section: string): Promise<SiteContent | nul
       .from('site_content')
       .select('*')
       .eq('section', section)
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
     return data;
@@ -60,6 +60,21 @@ export async function updateSiteContent(section: string, content: any, contentTy
   try {
     console.log('Updating site content:', { section, content, contentType });
     
+    // Get current user to check authentication
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError) {
+      console.error('Authentication error:', authError);
+      throw new Error(`Authentication failed: ${authError.message}`);
+    }
+    
+    if (!user) {
+      console.error('User not authenticated');
+      throw new Error('User must be authenticated to update site content');
+    }
+    
+    console.log('User authenticated for content update:', user.id);
+    
     const { data, error } = await supabase
       .from('site_content')
       .upsert({
@@ -67,12 +82,20 @@ export async function updateSiteContent(section: string, content: any, contentTy
         content_type: contentType,
         content,
         updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'section' // Specify the unique constraint column
       })
       .select()
       .single();
 
     if (error) {
       console.error('Supabase upsert error:', error);
+      
+      // Handle specific RLS policy errors
+      if (error.code === '42501') {
+        throw new Error('Permission denied: You do not have permission to update site content. Please contact your administrator to update Row Level Security policies.');
+      }
+      
       throw error;
     }
     

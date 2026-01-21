@@ -19,6 +19,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { fetchImages, uploadImage, updateImage, deleteImage, getGalleries, validateFile, updateImageDimensions } from '../lib/storage';
 import { getAllSiteContent, updateSiteContent, CONTENT_SECTIONS, DEFAULT_CONTENT } from '../services/contentService';
+import { supabase } from '../lib/supabase';
 import type { DatabaseImage } from '../lib/supabase';
 
 interface Gallery {
@@ -31,7 +32,8 @@ export function AdminDashboard() {
   const { user, signOut } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<'galleries' | 'upload' | 'settings' | 'content'>('galleries');
-  const [images, setImages] = useState<DatabaseImage[]>([]);
+  const [allImages, setAllImages] = useState<DatabaseImage[]>([]); // Store all images
+  const [images, setImages] = useState<DatabaseImage[]>([]); // Filtered images for display
   const [galleries, setGalleries] = useState<Gallery[]>([]);
   const [selectedGallery, setSelectedGallery] = useState('all');
   const [draggedImage, setDraggedImage] = useState<string | null>(null);
@@ -56,7 +58,6 @@ export function AdminDashboard() {
   const [updatingDimensions, setUpdatingDimensions] = useState(false);
   const [siteContent, setSiteContent] = useState<Record<string, any>>(DEFAULT_CONTENT);
   const [contentLoading, setContentLoading] = useState(false);
-  const [editingContent, setEditingContent] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   useEffect(() => {
@@ -71,7 +72,18 @@ export function AdminDashboard() {
     return () => {
       mountedRef.current = false;
     };
-  }, [selectedGallery, activeTab]); // Re-run when gallery or tab changes
+  }, [activeTab]); // Only re-run when tab changes, not when gallery changes
+
+  // Client-side filtering effect (like the actual website)
+  useEffect(() => {
+    console.log('Filtering images for gallery:', selectedGallery);
+    const filteredImages = selectedGallery === 'all'
+      ? allImages
+      : allImages.filter(img => img.gallery === selectedGallery);
+    
+    console.log(`Filtered to ${filteredImages.length} images from ${allImages.length} total images`);
+    setImages(filteredImages);
+  }, [selectedGallery, allImages]); // Re-run when gallery or allImages change
 
   const loadContent = async () => {
     try {
@@ -99,31 +111,64 @@ export function AdminDashboard() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [imagesData, galleriesData] = await Promise.all([
-        fetchImages(selectedGallery === 'all' ? undefined : selectedGallery),
-        getGalleries(),
-      ]);
+      console.log('Loading data for gallery:', selectedGallery);
+      
+      let imagesData = [];
+      let galleriesData = [];
+      
+      try {
+        // Always fetch ALL images (like the actual website), then filter client-side
+        [imagesData, galleriesData] = await Promise.all([
+          fetchImages(), // Always fetch all images, no gallery filter
+          getGalleries(),
+        ]);
+      } catch (error) {
+        console.error('Error loading data, trying fallback:', error);
+        
+        // Fallback: try loading galleries first, then images with shorter timeout
+        try {
+          galleriesData = await getGalleries();
+          console.log('Galleries loaded in fallback');
+        } catch (galleryError) {
+          console.error('Failed to load galleries in fallback:', galleryError);
+          showNotification('error', 'Failed to load galleries. Please check your connection.');
+          return;
+        }
+        
+        // Try images with a simpler approach
+        try {
+          imagesData = await fetchImages(); // Always fetch all images
+        } catch (imageError) {
+          console.error('Failed to load images in fallback:', imageError);
+          showNotification('error', 'Failed to load images. Please refresh the page.');
+          return;
+        }
+      }
+      
+      console.log('Raw images data:', imagesData);
+      console.log('Images data length:', imagesData?.length);
       
       // Deduplicate images by ID to prevent duplicates
-      const uniqueImages = imagesData.filter((image, index, self) => 
-        self.findIndex(img => img.id === image.id) === index
+      const uniqueImages = imagesData.filter((image: DatabaseImage, index: number, self: DatabaseImage[]) => 
+        self.findIndex((img: DatabaseImage) => img.id === image.id) === index
       );
       
       // Additional check for any remaining duplicates
-      const imageIds = uniqueImages.map(img => img.id);
-      const duplicateIds = imageIds.filter((id, index) => imageIds.indexOf(id) !== index);
+      const imageIds = uniqueImages.map((img: DatabaseImage) => img.id);
+      const duplicateIds = imageIds.filter((id: string, index: number) => imageIds.indexOf(id) !== index);
       
       if (duplicateIds.length > 0) {
         console.warn('Found duplicate image IDs:', duplicateIds);
       }
       
       console.log(`Loaded ${imagesData.length} images, deduplicated to ${uniqueImages.length} unique images`);
+      console.log('Selected gallery filter:', selectedGallery);
       
       // Only update state if component is still mounted and data has actually changed
       if (mountedRef.current) {
         // Create a Set of unique image IDs to ensure no duplicates
-        const uniqueImageIds = new Set();
-        const trulyUniqueImages = uniqueImages.filter(image => {
+        const uniqueImageIds = new Set<string>();
+        const trulyUniqueImages = uniqueImages.filter((image: DatabaseImage) => {
           if (uniqueImageIds.has(image.id)) {
             console.warn('Duplicate image ID found:', image.id);
             return false;
@@ -133,7 +178,10 @@ export function AdminDashboard() {
         });
         
         console.log(`Final unique images count: ${trulyUniqueImages.length}`);
-        setImages(trulyUniqueImages);
+        console.log('Gallery of each image:', trulyUniqueImages.map((img: DatabaseImage) => ({ id: img.id, gallery: img.gallery, title: img.title })));
+        console.log('Expected gallery filter:', selectedGallery);
+        console.log('Images that match filter:', trulyUniqueImages.filter((img: DatabaseImage) => selectedGallery === 'all' || img.gallery === selectedGallery));
+        setAllImages(trulyUniqueImages); // Store all images
         setGalleries(galleriesData);
       }
       
@@ -231,16 +279,16 @@ export function AdminDashboard() {
   const handleDrop = (targetId: string) => {
     if (!draggedImage) return;
 
-    const draggedIndex = images.findIndex(img => img.id === draggedImage);
-    const targetIndex = images.findIndex(img => img.id === targetId);
+    const draggedIndex = allImages.findIndex(img => img.id === draggedImage);
+    const targetIndex = allImages.findIndex(img => img.id === targetId);
 
     if (draggedIndex === targetIndex) return;
 
-    const newImages = [...images];
-    const [removed] = newImages.splice(draggedIndex, 1);
-    newImages.splice(targetIndex, 0, removed);
+    const newAllImages = [...allImages];
+    const [removed] = newAllImages.splice(draggedIndex, 1);
+    newAllImages.splice(targetIndex, 0, removed);
 
-    setImages(newImages);
+    setAllImages(newAllImages);
     setDraggedImage(null);
     
     // Update order in database (you might want to add an order field)
@@ -252,7 +300,7 @@ export function AdminDashboard() {
     
     try {
       await deleteImage(imageId);
-      setImages(images.filter(img => img.id !== imageId));
+      setAllImages(allImages.filter(img => img.id !== imageId)); // Update allImages
       showNotification('success', 'Image deleted successfully');
       await loadData(); // Refresh galleries count
     } catch (error) {
@@ -276,9 +324,9 @@ export function AdminDashboard() {
     
     try {
       await updateImage(editingImage, editForm);
-      setImages(images.map(img => 
+      setAllImages(allImages.map(img => 
         img.id === editingImage ? { ...img, ...editForm } : img
-      ));
+      )); // Update allImages
       setEditingImage(null);
       setEditForm({});
       showNotification('success', 'Image updated successfully');
@@ -521,12 +569,15 @@ export function AdminDashboard() {
                       : 'bg-white border hover:bg-gray-50'
                   }`}
                 >
-                  All ({images.length})
+                  All ({allImages.length})
                 </button>
                 {galleries.map(gallery => (
                   <button
                     key={gallery.id}
-                    onClick={() => setSelectedGallery(gallery.id)}
+                    onClick={() => {
+                      console.log('Gallery button clicked:', { galleryId: gallery.id, galleryName: gallery.name });
+                      setSelectedGallery(gallery.id);
+                    }}
                     className={`px-4 py-2 rounded-lg ${
                       selectedGallery === gallery.id
                         ? 'bg-orange-500 text-white'
@@ -973,6 +1024,112 @@ export function AdminDashboard() {
                     </div>
                   </div>
 
+                  {/* About Page Stats Section */}
+                  <div className="border rounded-lg p-4">
+                    <h3 className="font-medium mb-4">About Page - Statistics</h3>
+                    <div className="space-y-4">
+                      {siteContent[CONTENT_SECTIONS.ABOUT_STATS]?.map((stat: any, index: number) => (
+                        <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Icon</label>
+                            <select
+                              value={stat.icon || 'Camera'}
+                              onChange={(e) => {
+                                const newStats = [...siteContent[CONTENT_SECTIONS.ABOUT_STATS]];
+                                newStats[index] = {
+                                  ...stat,
+                                  icon: e.target.value
+                                };
+                                setSiteContent(prev => ({
+                                  ...prev,
+                                  [CONTENT_SECTIONS.ABOUT_STATS]: newStats
+                                }));
+                              }}
+                              className="w-full px-3 py-2 border rounded-lg"
+                            >
+                              <option value="Camera">Camera</option>
+                              <option value="Award">Award</option>
+                              <option value="Users">Users</option>
+                              <option value="MapPin">MapPin</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Label</label>
+                            <input
+                              type="text"
+                              value={stat.label || ''}
+                              onChange={(e) => {
+                                const newStats = [...siteContent[CONTENT_SECTIONS.ABOUT_STATS]];
+                                newStats[index] = {
+                                  ...stat,
+                                  label: e.target.value
+                                };
+                                setSiteContent(prev => ({
+                                  ...prev,
+                                  [CONTENT_SECTIONS.ABOUT_STATS]: newStats
+                                }));
+                              }}
+                              className="w-full px-3 py-2 border rounded-lg"
+                              placeholder="e.g., Projects Completed"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Value</label>
+                            <input
+                              type="text"
+                              value={stat.value || ''}
+                              onChange={(e) => {
+                                const newStats = [...siteContent[CONTENT_SECTIONS.ABOUT_STATS]];
+                                newStats[index] = {
+                                  ...stat,
+                                  value: e.target.value
+                                };
+                                setSiteContent(prev => ({
+                                  ...prev,
+                                  [CONTENT_SECTIONS.ABOUT_STATS]: newStats
+                                }));
+                              }}
+                              className="w-full px-3 py-2 border rounded-lg"
+                              placeholder="e.g., 500+"
+                            />
+                          </div>
+                          <div className="flex items-end">
+                            <button
+                              onClick={() => {
+                                const newStats = siteContent[CONTENT_SECTIONS.ABOUT_STATS].filter((_: any, i: number) => i !== index);
+                                setSiteContent(prev => ({
+                                  ...prev,
+                                  [CONTENT_SECTIONS.ABOUT_STATS]: newStats
+                                }));
+                              }}
+                              className="w-full px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                      <button
+                        onClick={() => {
+                          const newStats = [...(siteContent[CONTENT_SECTIONS.ABOUT_STATS] || [])];
+                          newStats.push({
+                            icon: 'Camera',
+                            label: '',
+                            value: ''
+                          });
+                          setSiteContent(prev => ({
+                            ...prev,
+                            [CONTENT_SECTIONS.ABOUT_STATS]: newStats
+                          }));
+                        }}
+                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center gap-2"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add Stat
+                      </button>
+                    </div>
+                  </div>
+
                   {/* Contact Information Section */}
                   <div className="border rounded-lg p-4">
                     <h3 className="font-medium mb-4">Contact Information</h3>
@@ -1023,6 +1180,22 @@ export function AdminDashboard() {
                           }))}
                           className="w-full px-3 py-2 border rounded-lg"
                           placeholder="San Francisco, CA"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                        <textarea
+                          value={siteContent[CONTENT_SECTIONS.CONTACT_INFO]?.address || ''}
+                          onChange={(e) => setSiteContent(prev => ({
+                            ...prev,
+                            [CONTENT_SECTIONS.CONTACT_INFO]: {
+                              ...prev[CONTENT_SECTIONS.CONTACT_INFO],
+                              address: e.target.value
+                            }
+                          }))}
+                          className="w-full px-3 py-2 border rounded-lg"
+                          placeholder="123 Market Street, Suite 456&#10;San Francisco, CA 94102"
+                          rows={2}
                         />
                       </div>
                     </div>
@@ -1129,6 +1302,88 @@ export function AdminDashboard() {
                     </div>
                   </div>
 
+                  {/* About Page Services Section */}
+                  <div className="border rounded-lg p-4">
+                    <h3 className="font-medium mb-4">About Page - Services</h3>
+                    <div className="space-y-4">
+                      {siteContent[CONTENT_SECTIONS.ABOUT_SERVICES]?.map((service: any, index: number) => (
+                        <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Service Title</label>
+                            <input
+                              type="text"
+                              value={service.title || ''}
+                              onChange={(e) => {
+                                const newServices = [...siteContent[CONTENT_SECTIONS.ABOUT_SERVICES]];
+                                newServices[index] = {
+                                  ...service,
+                                  title: e.target.value
+                                };
+                                setSiteContent(prev => ({
+                                  ...prev,
+                                  [CONTENT_SECTIONS.ABOUT_SERVICES]: newServices
+                                }));
+                              }}
+                              className="w-full px-3 py-2 border rounded-lg"
+                              placeholder="e.g., Landscape Photography"
+                            />
+                          </div>
+                          <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                            <textarea
+                              value={service.description || ''}
+                              onChange={(e) => {
+                                const newServices = [...siteContent[CONTENT_SECTIONS.ABOUT_SERVICES]];
+                                newServices[index] = {
+                                  ...service,
+                                  description: e.target.value
+                                };
+                                setSiteContent(prev => ({
+                                  ...prev,
+                                  [CONTENT_SECTIONS.ABOUT_SERVICES]: newServices
+                                }));
+                              }}
+                              className="w-full px-3 py-2 border rounded-lg"
+                              placeholder="Describe the service..."
+                              rows={3}
+                            />
+                          </div>
+                          <div className="md:col-span-3">
+                            <button
+                              onClick={() => {
+                                const newServices = siteContent[CONTENT_SECTIONS.ABOUT_SERVICES].filter((_: any, i: number) => i !== index);
+                                setSiteContent(prev => ({
+                                  ...prev,
+                                  [CONTENT_SECTIONS.ABOUT_SERVICES]: newServices
+                                }));
+                              }}
+                              className="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                            >
+                              Remove Service
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                      <button
+                        onClick={() => {
+                          const newServices = [...(siteContent[CONTENT_SECTIONS.ABOUT_SERVICES] || [])];
+                          newServices.push({
+                            title: '',
+                            description: ''
+                          });
+                          setSiteContent(prev => ({
+                            ...prev,
+                            [CONTENT_SECTIONS.ABOUT_SERVICES]: newServices
+                          }));
+                        }}
+                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center gap-2"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add Service
+                      </button>
+                    </div>
+                  </div>
+
                   {/* About Page Image Section */}
                   <div className="border rounded-lg p-4">
                     <h3 className="font-medium mb-4">About Page Image</h3>
@@ -1142,24 +1397,49 @@ export function AdminDashboard() {
                             const file = e.target.files?.[0];
                             if (file) {
                               try {
-                                // Upload to Supabase Storage
-                                const result = await uploadImage(file, {
-                                  filename: file.name,
-                                  title: 'About Profile Image',
-                                  description: 'Profile image for about page',
-                                  gallery: 'about',
-                                  tags: ['profile', 'about']
-                                });
-                                
-                                // Update content with the new image URL
+                                // Validate file first
+                                const validation = validateFile(file);
+                                if (!validation.valid) {
+                                  showNotification('error', validation.error || 'Invalid file');
+                                  return;
+                                }
+
+                                // Get current user
+                                const { data: { user }, error: userError } = await supabase.auth.getUser();
+                                if (userError || !user) {
+                                  throw new Error('User not authenticated');
+                                }
+
+                                // Generate filename for profile image
+                                const date = new Date();
+                                const dateStr = date.toISOString().slice(0, 10).replace(/-/g, '');
+                                const fileExt = file.name.split('.').pop();
+                                const filename = `profile_${dateStr}.${fileExt}`;
+
+                                // Upload to Supabase Storage in a separate profile folder
+                                const filePath = `profile/${filename}`;
+                                const { error: uploadError } = await supabase.storage
+                                  .from('images')
+                                  .upload(filePath, file);
+
+                                if (uploadError) {
+                                  throw uploadError;
+                                }
+
+                                // Get public URL
+                                const { data: { publicUrl } } = supabase.storage
+                                  .from('images')
+                                  .getPublicUrl(filePath);
+
+                                // Update content with new image URL (no gallery upload)
                                 setSiteContent(prev => ({
                                   ...prev,
                                   [CONTENT_SECTIONS.ABOUT_IMAGE]: {
                                     ...prev[CONTENT_SECTIONS.ABOUT_IMAGE],
-                                    imageUrl: result.url
+                                    imageUrl: publicUrl
                                   }
                                 }));
-                                
+
                                 showNotification('success', 'Profile image uploaded successfully!');
                               } catch (error) {
                                 console.error('Failed to upload profile image:', error);
@@ -1168,23 +1448,6 @@ export function AdminDashboard() {
                             }
                           }}
                           className="w-full px-3 py-2 border rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100"
-                        />
-                        <p className="text-xs text-gray-500 mt-1">Or use existing image URL:</p>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Image URL (optional)</label>
-                        <input
-                          type="url"
-                          value={siteContent[CONTENT_SECTIONS.ABOUT_IMAGE]?.imageUrl || ''}
-                          onChange={(e) => setSiteContent(prev => ({
-                            ...prev,
-                            [CONTENT_SECTIONS.ABOUT_IMAGE]: {
-                              ...prev[CONTENT_SECTIONS.ABOUT_IMAGE],
-                              imageUrl: e.target.value
-                            }
-                          }))}
-                          className="w-full px-3 py-2 border rounded-lg"
-                          placeholder="https://example.com/image.jpg"
                         />
                       </div>
                       {siteContent[CONTENT_SECTIONS.ABOUT_IMAGE]?.imageUrl && (

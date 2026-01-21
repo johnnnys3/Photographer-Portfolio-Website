@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Photo } from '../services/dataService';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import type { DatabaseImage } from '../lib/supabase';
 
 interface ImageCarouselProps {
-  images: Photo[];
+  images: DatabaseImage[];
 }
 
 export function ImageCarousel({ images }: ImageCarouselProps) {
@@ -42,7 +42,7 @@ export function ImageCarousel({ images }: ImageCarouselProps) {
           >
             <div className="relative w-full h-full">
               <img
-                src={image.src || image.url}
+                src={image.url}
                 alt={image.title}
                 className="w-full h-full object-cover"
               />

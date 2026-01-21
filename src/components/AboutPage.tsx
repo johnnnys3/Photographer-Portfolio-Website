@@ -1,17 +1,77 @@
-import React from 'react';
-import { Camera, Award, Users, MapPin } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Camera, Award, Users, MapPin, LucideIcon } from 'lucide-react';
+import { getSiteContent, CONTENT_SECTIONS } from '../services/contentService';
 
 interface AboutPageProps {
   onNavigate: (page: string) => void;
 }
 
+interface StatItem {
+  icon: LucideIcon;
+  label: string;
+  value: string;
+}
+
 export function AboutPage({ onNavigate }: AboutPageProps) {
-  const stats = [
+  const [siteContent, setSiteContent] = useState<any>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadContent = async () => {
+      try {
+        const [bioContent, statsContent, servicesContent, profileContent] = await Promise.all([
+          getSiteContent(CONTENT_SECTIONS.ABOUT_BIO),
+          getSiteContent(CONTENT_SECTIONS.ABOUT_STATS),
+          getSiteContent(CONTENT_SECTIONS.ABOUT_SERVICES),
+          getSiteContent(CONTENT_SECTIONS.ABOUT_PROFILE)
+        ]);
+        
+        setSiteContent({
+          bio: bioContent,
+          stats: statsContent,
+          services: servicesContent,
+          profile: profileContent
+        });
+      } catch (error) {
+        console.error('Failed to load content:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Listen for content updates from admin panel
+    const handleContentUpdate = (event: Event) => {
+      console.log('About page - Content updated event received:', (event as CustomEvent).detail);
+      loadContent();
+    };
+
+    window.addEventListener('siteContentUpdated', handleContentUpdate);
+
+    loadContent();
+
+    return () => {
+      console.log('About page - Cleaning up event listener');
+      window.removeEventListener('siteContentUpdated', handleContentUpdate);
+    };
+  }, []);
+
+  const stats: StatItem[] = siteContent.stats?.content || [
     { icon: Camera, label: 'Projects Completed', value: '500+' },
     { icon: Award, label: 'Awards Won', value: '25+' },
     { icon: Users, label: 'Happy Clients', value: '200+' },
     { icon: MapPin, label: 'Countries Visited', value: '30+' },
   ];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white pt-24 pb-16 px-4 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading content...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white pt-24 pb-16 px-4">
@@ -32,6 +92,7 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
               src="https://images.unsplash.com/photo-1544124094-8aea0374da93?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwb3J0cmFpdCUyMHBob3RvZ3JhcGh5fGVufDF8fHx8MTc2ODMyNzM4M3ww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
               alt="Photographer"
               className="rounded-lg shadow-xl w-full"
+              loading="lazy"
             />
           </div>
 
@@ -66,7 +127,7 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
 
         {/* Stats - Tailwind: grid grid-cols-2 lg:grid-cols-4 gap-8 */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-          {stats.map((stat, index) => {
+          {stats.map((stat: StatItem, index: number) => {
             const Icon = stat.icon;
             return (
               <div

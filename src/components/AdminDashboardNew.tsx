@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Menu,
   X,
@@ -17,7 +17,8 @@ import {
   LogOut,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { fetchImages, uploadImage, updateImage, deleteImage, getGalleries, validateFile } from '../lib/storage';
+import { fetchImages, uploadImage, updateImage, deleteImage, getGalleries, validateFile, updateImageDimensions } from '../lib/storage';
+import { getAllSiteContent, updateSiteContent, CONTENT_SECTIONS, DEFAULT_CONTENT } from '../services/contentService';
 import type { DatabaseImage } from '../lib/supabase';
 
 interface Gallery {
@@ -29,7 +30,7 @@ interface Gallery {
 export function AdminDashboard() {
   const { user, signOut } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeTab, setActiveTab] = useState<'galleries' | 'upload' | 'settings'>('galleries');
+  const [activeTab, setActiveTab] = useState<'galleries' | 'upload' | 'settings' | 'content'>('galleries');
   const [images, setImages] = useState<DatabaseImage[]>([]);
   const [galleries, setGalleries] = useState<Gallery[]>([]);
   const [selectedGallery, setSelectedGallery] = useState('all');
@@ -44,15 +45,56 @@ export function AdminDashboard() {
     gallery: '',
     tags: [] as string[],
   });
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [notification, setNotification] = useState<{
     type: 'success' | 'error' | 'info';
     message: string;
   } | null>(null);
+  // Add mounted flag to prevent state updates on unmounted component
+  const mountedRef = useRef(true);
+  const [updatingDimensions, setUpdatingDimensions] = useState(false);
+  const [siteContent, setSiteContent] = useState<Record<string, any>>(DEFAULT_CONTENT);
+  const [contentLoading, setContentLoading] = useState(false);
+  const [editingContent, setEditingContent] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   useEffect(() => {
     loadData();
-  }, [selectedGallery]);
+    
+    // Load content when content tab is active
+    if (activeTab === 'content') {
+      loadContent();
+    }
+    
+    // Cleanup function
+    return () => {
+      mountedRef.current = false;
+    };
+  }, [selectedGallery, activeTab]); // Re-run when gallery or tab changes
+
+  const loadContent = async () => {
+    try {
+      setContentLoading(true);
+      const allContent = await getAllSiteContent();
+      
+      // Convert array of SiteContent to object keyed by section
+      const contentMap: Record<string, any> = { ...DEFAULT_CONTENT };
+      
+      allContent.forEach(item => {
+        if (item.content) {
+          contentMap[item.section] = item.content;
+        }
+      });
+      
+      setSiteContent(contentMap);
+    } catch (error) {
+      console.error('Failed to load content:', error);
+      showNotification('error', 'Failed to load content. Using defaults.');
+    } finally {
+      setContentLoading(false);
+    }
+  };
 
   const loadData = async () => {
     try {
@@ -61,8 +103,39 @@ export function AdminDashboard() {
         fetchImages(selectedGallery === 'all' ? undefined : selectedGallery),
         getGalleries(),
       ]);
-      setImages(imagesData);
-      setGalleries(galleriesData);
+      
+      // Deduplicate images by ID to prevent duplicates
+      const uniqueImages = imagesData.filter((image, index, self) => 
+        self.findIndex(img => img.id === image.id) === index
+      );
+      
+      // Additional check for any remaining duplicates
+      const imageIds = uniqueImages.map(img => img.id);
+      const duplicateIds = imageIds.filter((id, index) => imageIds.indexOf(id) !== index);
+      
+      if (duplicateIds.length > 0) {
+        console.warn('Found duplicate image IDs:', duplicateIds);
+      }
+      
+      console.log(`Loaded ${imagesData.length} images, deduplicated to ${uniqueImages.length} unique images`);
+      
+      // Only update state if component is still mounted and data has actually changed
+      if (mountedRef.current) {
+        // Create a Set of unique image IDs to ensure no duplicates
+        const uniqueImageIds = new Set();
+        const trulyUniqueImages = uniqueImages.filter(image => {
+          if (uniqueImageIds.has(image.id)) {
+            console.warn('Duplicate image ID found:', image.id);
+            return false;
+          }
+          uniqueImageIds.add(image.id);
+          return true;
+        });
+        
+        console.log(`Final unique images count: ${trulyUniqueImages.length}`);
+        setImages(trulyUniqueImages);
+        setGalleries(galleriesData);
+      }
       
       // Show helpful message if no database setup
       if (galleriesData.length > 0 && imagesData.length === 0) {
@@ -73,6 +146,72 @@ export function AdminDashboard() {
       showNotification('error', 'Failed to load data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveAllContent = async () => {
+    try {
+      setContentLoading(true);
+      setSaveSuccess(false);
+      
+      console.log('Current siteContent state before saving:', siteContent);
+      console.log('Available sections:', Object.keys(siteContent));
+      
+      // Save each content section to database
+      const savePromises = Object.entries(siteContent).map(async ([section, content]) => {
+        try {
+          console.log(`Saving section: ${section} with content:`, content);
+          
+          // Determine content type based on section
+          let contentType: 'text' | 'image' | 'stats' | 'services' = 'text';
+          if (section === CONTENT_SECTIONS.ABOUT_STATS) {
+            contentType = 'stats';
+          } else if (section === CONTENT_SECTIONS.ABOUT_SERVICES || section === CONTENT_SECTIONS.SOCIAL_MEDIA) {
+            contentType = 'services';
+          } else if (section === CONTENT_SECTIONS.ABOUT_IMAGE) {
+            contentType = 'image';
+          }
+          
+          const result = await updateSiteContent(section, content, contentType);
+          console.log(`Save result for ${section}:`, result);
+          return result;
+        } catch (error) {
+          console.error(`Failed to save ${section}:`, error);
+          throw error;
+        }
+      });
+      
+      const results = await Promise.all(savePromises);
+      console.log('All save operations completed, results:', results);
+      
+      setSaveSuccess(true);
+      showNotification('success', 'All content saved successfully!');
+      
+      // Reset success state after 3 seconds
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (error) {
+      console.error('Failed to save content:', error);
+      showNotification('error', 'Failed to save content. Please try again.');
+    } finally {
+      setContentLoading(false);
+    }
+  };
+
+  const handleUpdateDimensions = async () => {
+    if (!confirm('This will update dimensions for all existing images. It may take a few minutes. Continue?')) {
+      return;
+    }
+    
+    setUpdatingDimensions(true);
+    try {
+      const result = await updateImageDimensions();
+      showNotification('success', `Updated dimensions for ${result.updated} out of ${result.total} images`);
+      await loadData(); // Refresh the data
+    } catch (error) {
+      console.error('Failed to update dimensions:', error);
+      showNotification('error', 'Failed to update image dimensions');
+    } finally {
+      setUpdatingDimensions(false);
     }
   };
 
@@ -149,7 +288,7 @@ export function AdminDashboard() {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
@@ -165,13 +304,19 @@ export function AdminDashboard() {
       return;
     }
 
+    setSelectedFiles(files);
+  };
+
+  const handleUploadImages = async () => {
+    if (selectedFiles.length === 0) return;
+
     if (!uploadForm.gallery) {
       showNotification('error', 'Please select a gallery');
       return;
     }
 
     setUploading(true);
-    const uploadPromises = files.map(file => 
+    const uploadPromises = selectedFiles.map(file => 
       uploadImage(file, {
         title: uploadForm.title || file.name.split('.')[0],
         description: uploadForm.description,
@@ -186,10 +331,28 @@ export function AdminDashboard() {
       showNotification('success', `Successfully uploaded ${results.length} images`);
       setUploadForm({ title: '', description: '', gallery: '', tags: [] });
       setTagInput('');
+      setSelectedFiles([]); // Clear selected files
       await loadData();
-    } catch (error) {
-      console.error('Upload failed:', error);
-      showNotification('error', 'Failed to upload images');
+    } catch (error: any) {
+      console.error('Upload failed - Full error:', error);
+      console.error('Upload failed - Error details:', {
+        message: error?.message,
+        status: error?.status,
+        statusText: error?.statusText,
+        name: error?.name,
+        stack: error?.stack
+      });
+      
+      // Show more specific error messages
+      if (error?.message?.includes('JWT')) {
+        showNotification('error', 'Authentication error. Please sign in again.');
+      } else if (error?.message?.includes('storage')) {
+        showNotification('error', 'Storage error. Check Supabase storage bucket setup.');
+      } else if (error?.message?.includes('permission')) {
+        showNotification('error', 'Permission denied. Check RLS policies in Supabase.');
+      } else {
+        showNotification('error', `Upload failed: ${error?.message || 'Unknown error'}`);
+      }
     } finally {
       setUploading(false);
     }
@@ -276,6 +439,18 @@ export function AdminDashboard() {
             </button>
             
             <button
+              onClick={() => setActiveTab('content')}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                activeTab === 'content' 
+                  ? 'bg-orange-500 text-white' 
+                  : 'hover:bg-gray-100 text-gray-700'
+              }`}
+            >
+              <Edit2 className="w-5 h-5" />
+              {sidebarOpen && <span>Manage Content</span>}
+            </button>
+            
+            <button
               onClick={() => setActiveTab('settings')}
               className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                 activeTab === 'settings' 
@@ -308,6 +483,7 @@ export function AdminDashboard() {
             <h1 className="text-2xl font-semibold text-gray-800">
               {activeTab === 'galleries' && 'Manage Galleries'}
               {activeTab === 'upload' && 'Upload Images'}
+              {activeTab === 'content' && 'Manage Content'}
               {activeTab === 'settings' && 'Settings'}
             </h1>
             <div className="text-sm text-gray-600">
@@ -385,6 +561,7 @@ export function AdminDashboard() {
                           src={image.url}
                           alt={image.title}
                           className="w-full h-full object-cover"
+                          loading="lazy"
                         />
                         <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
@@ -407,7 +584,14 @@ export function AdminDashboard() {
                       
                       <div className="p-4">
                         <h3 className="font-medium text-gray-900 truncate">{image.title}</h3>
-                        <p className="text-sm text-gray-500 truncate">{image.gallery}</p>
+                        <p className="text-sm text-gray-500 truncate">
+                          {image.gallery.charAt(0).toUpperCase() + image.gallery.slice(1)}
+                        </p>
+                        {image.width && image.height && (
+                          <p className="text-xs text-gray-400 mt-1">
+                            {image.width} × {image.height}px
+                          </p>
+                        )}
                         {image.tags.length > 0 && (
                           <div className="flex flex-wrap gap-1 mt-2">
                             {image.tags.slice(0, 2).map(tag => (
@@ -606,6 +790,51 @@ export function AdminDashboard() {
                     />
                   </div>
 
+                  {/* Show Selected Files */}
+                  {selectedFiles.length > 0 && (
+                    <div className="mb-4 p-4 border rounded-lg bg-gray-50">
+                      <h4 className="font-medium mb-2">Selected Files ({selectedFiles.length})</h4>
+                      <div className="space-y-2 max-h-40 overflow-y-auto">
+                        {selectedFiles.map((file, index) => (
+                          <div key={index} className="flex items-center justify-between p-2 bg-white rounded border">
+                            <div className="flex items-center gap-2">
+                              <ImageIcon className="w-4 h-4 text-gray-400" />
+                              <span className="text-sm truncate max-w-xs">{file.name}</span>
+                              <span className="text-xs text-gray-500">({(file.size / 1024 / 1024).toFixed(1)} MB)</span>
+                            </div>
+                            <button
+                              onClick={() => setSelectedFiles(selectedFiles.filter((_, i) => i !== index))}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Upload Button */}
+                  {selectedFiles.length > 0 && (
+                    <button
+                      onClick={handleUploadImages}
+                      disabled={uploading || !uploadForm.gallery}
+                      className="w-full px-4 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {uploading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                          Uploading {selectedFiles.length} files...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-5 h-5" />
+                          Upload {selectedFiles.length} {selectedFiles.length === 1 ? 'Image' : 'Images'}
+                        </>
+                      )}
+                    </button>
+                  )}
+
                   <div className="text-sm text-gray-500">
                     <p>• Supported formats: JPG, PNG, WEBP</p>
                     <p>• Maximum file size: 20MB</p>
@@ -632,6 +861,382 @@ export function AdminDashboard() {
                     <p className="text-sm text-gray-600">Total Images: {images.length}</p>
                     <p className="text-sm text-gray-600">Galleries: {galleries.length}</p>
                   </div>
+                  <div className="p-4 border rounded-lg">
+                    <h3 className="font-medium mb-2">Image Management</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Update dimensions for existing images that don't have width/height information
+                    </p>
+                    <button
+                      onClick={handleUpdateDimensions}
+                      disabled={updatingDimensions}
+                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                      {updatingDimensions ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          Updating Dimensions...
+                        </>
+                      ) : (
+                        <>
+                          <Settings className="w-4 h-4" />
+                          Update Image Dimensions
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Content Management Tab */}
+          {activeTab === 'content' && (
+            <div className="max-w-4xl mx-auto">
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h2 className="text-xl font-semibold mb-6">Website Content Management</h2>
+                
+                {contentLoading && (
+                  <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-3">
+                    <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                    <span className="text-blue-700">Loading content from database...</span>
+                  </div>
+                )}
+                
+                <div className="space-y-6">
+                  {/* Home Hero Section */}
+                  <div className="border rounded-lg p-4">
+                    <h3 className="font-medium mb-4">Home Page - Hero Section</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Main Title</label>
+                        <input
+                          type="text"
+                          value={siteContent[CONTENT_SECTIONS.HOME_HERO]?.title || ''}
+                          onChange={(e) => setSiteContent(prev => ({
+                            ...prev,
+                            [CONTENT_SECTIONS.HOME_HERO]: {
+                              ...prev[CONTENT_SECTIONS.HOME_HERO],
+                              title: e.target.value
+                            }
+                          }))}
+                          className="w-full px-3 py-2 border rounded-lg"
+                          placeholder="Main hero title"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Subtitle</label>
+                        <textarea
+                          value={siteContent[CONTENT_SECTIONS.HOME_HERO]?.subtitle || ''}
+                          onChange={(e) => setSiteContent(prev => ({
+                            ...prev,
+                            [CONTENT_SECTIONS.HOME_HERO]: {
+                              ...prev[CONTENT_SECTIONS.HOME_HERO],
+                              subtitle: e.target.value
+                            }
+                          }))}
+                          className="w-full px-3 py-2 border rounded-lg"
+                          placeholder="Hero subtitle"
+                          rows={3}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* About Page Section */}
+                  <div className="border rounded-lg p-4">
+                    <h3 className="font-medium mb-4">About Page - Bio</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Bio Paragraphs</label>
+                        {siteContent[CONTENT_SECTIONS.ABOUT_BIO]?.paragraphs?.map((paragraph: string, index: number) => (
+                          <div key={index} className="mb-2">
+                            <textarea
+                              value={paragraph}
+                              onChange={(e) => {
+                                const newParagraphs = [...siteContent[CONTENT_SECTIONS.ABOUT_BIO].paragraphs];
+                                newParagraphs[index] = e.target.value;
+                                setSiteContent(prev => ({
+                                  ...prev,
+                                  [CONTENT_SECTIONS.ABOUT_BIO]: {
+                                    ...prev[CONTENT_SECTIONS.ABOUT_BIO],
+                                    paragraphs: newParagraphs
+                                  }
+                                }));
+                              }}
+                              className="w-full px-3 py-2 border rounded-lg"
+                              placeholder={`Paragraph ${index + 1}`}
+                              rows={3}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Contact Information Section */}
+                  <div className="border rounded-lg p-4">
+                    <h3 className="font-medium mb-4">Contact Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                        <input
+                          type="email"
+                          value={siteContent[CONTENT_SECTIONS.CONTACT_INFO]?.email || ''}
+                          onChange={(e) => setSiteContent(prev => ({
+                            ...prev,
+                            [CONTENT_SECTIONS.CONTACT_INFO]: {
+                              ...prev[CONTENT_SECTIONS.CONTACT_INFO],
+                              email: e.target.value
+                            }
+                          }))}
+                          className="w-full px-3 py-2 border rounded-lg"
+                          placeholder="contact@example.com"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                        <input
+                          type="tel"
+                          value={siteContent[CONTENT_SECTIONS.CONTACT_INFO]?.phone || ''}
+                          onChange={(e) => setSiteContent(prev => ({
+                            ...prev,
+                            [CONTENT_SECTIONS.CONTACT_INFO]: {
+                              ...prev[CONTENT_SECTIONS.CONTACT_INFO],
+                              phone: e.target.value
+                            }
+                          }))}
+                          className="w-full px-3 py-2 border rounded-lg"
+                          placeholder="+1 (555) 123-4567"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                        <input
+                          type="text"
+                          value={siteContent[CONTENT_SECTIONS.CONTACT_INFO]?.location || ''}
+                          onChange={(e) => setSiteContent(prev => ({
+                            ...prev,
+                            [CONTENT_SECTIONS.CONTACT_INFO]: {
+                              ...prev[CONTENT_SECTIONS.CONTACT_INFO],
+                              location: e.target.value
+                            }
+                          }))}
+                          className="w-full px-3 py-2 border rounded-lg"
+                          placeholder="San Francisco, CA"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Social Media Section */}
+                  <div className="border rounded-lg p-4">
+                    <h3 className="font-medium mb-4">Social Media Links</h3>
+                    <div className="space-y-4">
+                      {siteContent[CONTENT_SECTIONS.SOCIAL_MEDIA]?.map((social: any, index: number) => (
+                        <div key={index} className="flex items-center gap-4">
+                          <div className="flex-1">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Platform</label>
+                            <input
+                              type="text"
+                              value={social.platform || ''}
+                              onChange={(e) => {
+                                const newSocialMedia = [...siteContent[CONTENT_SECTIONS.SOCIAL_MEDIA]];
+                                newSocialMedia[index] = {
+                                  ...social,
+                                  platform: e.target.value
+                                };
+                                setSiteContent(prev => ({
+                                  ...prev,
+                                  [CONTENT_SECTIONS.SOCIAL_MEDIA]: newSocialMedia
+                                }));
+                              }}
+                              className="w-full px-3 py-2 border rounded-lg"
+                              placeholder="instagram"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">URL</label>
+                            <input
+                              type="url"
+                              value={social.url || ''}
+                              onChange={(e) => {
+                                const newSocialMedia = [...siteContent[CONTENT_SECTIONS.SOCIAL_MEDIA]];
+                                newSocialMedia[index] = {
+                                  ...social,
+                                  url: e.target.value
+                                };
+                                setSiteContent(prev => ({
+                                  ...prev,
+                                  [CONTENT_SECTIONS.SOCIAL_MEDIA]: newSocialMedia
+                                }));
+                              }}
+                              className="w-full px-3 py-2 border rounded-lg"
+                              placeholder="https://instagram.com/username"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Handle</label>
+                            <input
+                              type="text"
+                              value={social.handle || ''}
+                              onChange={(e) => {
+                                const newSocialMedia = [...siteContent[CONTENT_SECTIONS.SOCIAL_MEDIA]];
+                                newSocialMedia[index] = {
+                                  ...social,
+                                  handle: e.target.value
+                                };
+                                setSiteContent(prev => ({
+                                  ...prev,
+                                  [CONTENT_SECTIONS.SOCIAL_MEDIA]: newSocialMedia
+                                }));
+                              }}
+                              className="w-full px-3 py-2 border rounded-lg"
+                              placeholder="@username"
+                            />
+                          </div>
+                          <button
+                            onClick={() => {
+                              const newSocialMedia = siteContent[CONTENT_SECTIONS.SOCIAL_MEDIA].filter((_: any, i: number) => i !== index);
+                              setSiteContent(prev => ({
+                                ...prev,
+                                [CONTENT_SECTIONS.SOCIAL_MEDIA]: newSocialMedia
+                              }));
+                            }}
+                            className="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        onClick={() => {
+                          const newSocialMedia = [...siteContent[CONTENT_SECTIONS.SOCIAL_MEDIA]];
+                          newSocialMedia.push({
+                            platform: '',
+                            url: '',
+                            handle: ''
+                          });
+                          setSiteContent(prev => ({
+                            ...prev,
+                            [CONTENT_SECTIONS.SOCIAL_MEDIA]: newSocialMedia
+                          }));
+                        }}
+                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center gap-2"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add Social Media Link
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* About Page Image Section */}
+                  <div className="border rounded-lg p-4">
+                    <h3 className="font-medium mb-4">About Page Image</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Profile Image Upload</label>
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              try {
+                                // Upload to Supabase Storage
+                                const result = await uploadImage(file, {
+                                  filename: file.name,
+                                  title: 'About Profile Image',
+                                  description: 'Profile image for about page',
+                                  gallery: 'about',
+                                  tags: ['profile', 'about']
+                                });
+                                
+                                // Update content with the new image URL
+                                setSiteContent(prev => ({
+                                  ...prev,
+                                  [CONTENT_SECTIONS.ABOUT_IMAGE]: {
+                                    ...prev[CONTENT_SECTIONS.ABOUT_IMAGE],
+                                    imageUrl: result.url
+                                  }
+                                }));
+                                
+                                showNotification('success', 'Profile image uploaded successfully!');
+                              } catch (error) {
+                                console.error('Failed to upload profile image:', error);
+                                showNotification('error', 'Failed to upload profile image');
+                              }
+                            }
+                          }}
+                          className="w-full px-3 py-2 border rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Or use existing image URL:</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Image URL (optional)</label>
+                        <input
+                          type="url"
+                          value={siteContent[CONTENT_SECTIONS.ABOUT_IMAGE]?.imageUrl || ''}
+                          onChange={(e) => setSiteContent(prev => ({
+                            ...prev,
+                            [CONTENT_SECTIONS.ABOUT_IMAGE]: {
+                              ...prev[CONTENT_SECTIONS.ABOUT_IMAGE],
+                              imageUrl: e.target.value
+                            }
+                          }))}
+                          className="w-full px-3 py-2 border rounded-lg"
+                          placeholder="https://example.com/image.jpg"
+                        />
+                      </div>
+                      {siteContent[CONTENT_SECTIONS.ABOUT_IMAGE]?.imageUrl && (
+                        <div className="mt-4">
+                          <img
+                            src={siteContent[CONTENT_SECTIONS.ABOUT_IMAGE].imageUrl}
+                            alt="About profile image"
+                            className="w-32 h-32 object-cover rounded-lg"
+                            loading="lazy"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  </div>
+              </div>
+              
+              {/* Fixed Save Button */}
+              <div className="sticky bottom-0 bg-white border-t p-4 mt-6">
+                <div className="max-w-4xl mx-auto flex justify-end gap-4">
+                  <button
+                    onClick={loadContent}
+                    className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 flex items-center gap-2 text-lg font-medium"
+                    disabled={contentLoading}
+                  >
+                    {contentLoading ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        Loading...
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="w-5 h-5" />
+                        Reload
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={handleSaveAllContent}
+                    className="px-8 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 flex items-center gap-2 text-lg font-medium shadow-lg disabled:bg-gray-300 disabled:cursor-not-allowed border-2 border-orange-500"
+                    disabled={contentLoading}
+                  >
+                    <Save className="w-5 h-5" />
+                    {saveSuccess ? 'Saved!' : contentLoading ? 'Saving...' : 'Save All Content'}
+                    {contentLoading && !saveSuccess && (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin ml-2"></div>
+                    )}
+                    {saveSuccess && (
+                      <CheckCircle className="w-5 h-5 ml-2" />
+                    )}
+                  </button>
                 </div>
               </div>
             </div>

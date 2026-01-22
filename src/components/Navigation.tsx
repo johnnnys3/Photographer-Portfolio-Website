@@ -101,30 +101,32 @@ export function Navigation({ currentPage }: NavigationProps) {
           </div>
 
           {/* Center Navigation - Home + Navigation Links */}
-          <div className="hidden md:flex flex-1 items-center justify-center space-x-8">
-            {/* Home Button - always show in center */}
-            <Link
-              href="/"
-              className="px-4 py-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-black dark:hover:text-white transition duration-300 font-medium"
-              aria-label="Go home"
-            >
-              Home
-            </Link>
-            
-            {/* Navigation Links */}
-            {navLinks.map((link) => (
+          <div className="hidden md:flex flex-1 items-center justify-center">
+            <div className="flex items-center space-x-8 max-w-6xl mx-auto px-4" style={{ marginLeft: '535px' }}>
+              {/* Home Button - always show in center */}
               <Link
-                key={link.id}
-                href={link.href}
-                className={`transition duration-300 ease-in-out ${
-                  currentPg === link.id
-                    ? 'text-black dark:text-white font-medium'
-                    : 'text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white'
-                }`}
+                href="/"
+                className="px-4 py-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-black dark:hover:text-white transition duration-300 font-medium flex items-center"
+                aria-label="Go home"
               >
-                {link.label}
+                Home
               </Link>
-            ))}
+              
+              {/* Navigation Links */}
+              {navLinks.map((link) => (
+                <Link
+                  key={link.id}
+                  href={link.href}
+                  className={`transition duration-300 ease-in-out flex items-center ${
+                    currentPg === link.id
+                      ? 'text-black dark:text-white font-medium'
+                      : 'text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
           </div>
 
           {/* Right Navigation - Theme Toggle & Book Session */}
@@ -146,7 +148,7 @@ export function Navigation({ currentPage }: NavigationProps) {
             <div className="hidden md:block">
               <Link
                 href="/contact"
-                className="bg-black dark:bg-white text-white dark:text-black px-6 py-2 rounded-lg transition duration-300 ease-in-out hover:bg-gray-800 dark:hover:bg-gray-200"
+                className="bg-black dark:bg-white text-white dark:text-black px-6 py-2 rounded-lg transition duration-300 ease-in-out hover:bg-gray-800 dark:hover:bg-gray-200 flex items-center"
               >
                 Book Session
               </Link>

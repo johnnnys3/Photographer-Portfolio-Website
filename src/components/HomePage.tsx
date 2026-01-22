@@ -72,7 +72,7 @@ export function HomePage({ onImageClick }: HomePageProps) {
   return (
     <div className="min-h-screen bg-white dark:bg-black">
       {/* Hero Section - Photography Focus */}
-      <div className="bg-white dark:bg-black px-4 sm:px-6 lg:px-8 w-full flex items-center justify-center" style={{ minHeight: 'calc(100vh - 64px)' }}>
+      <div className="bg-white dark:bg-black px-4 sm:px-6 lg:px-8 w-full flex items-center justify-center mt-16" style={{ minHeight: 'calc(100vh - 64px)' }}>
         <div className="w-full max-w-6xl mx-auto text-center">
           {/* Main Heading */}
           <h1 className="text-4xl sm:text-6xl lg:text-7xl mb-6 text-black dark:text-white font-bold leading-tight">

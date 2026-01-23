@@ -15,6 +15,7 @@ import { DataProvider } from '@/contexts/DataContext';
 
 export const metadata: Metadata = {
   title: 'Photographer Portfolio Website',
+  viewport: 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes',
   // Content-Security-Policy is handled in next.config.js headers
 };
 

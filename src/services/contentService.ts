@@ -12,6 +12,9 @@ export interface SiteContent {
 // Site content sections
 export const CONTENT_SECTIONS = {
   HOME_HERO: 'home_hero',
+  HOME_TOP_TEXT: 'home_top_text',
+  HOME_MAIN_TITLE: 'home_main_title',
+  HOME_BUTTON_TEXT: 'home_button_text',
   HOME_ABOUT: 'home_about',
   ABOUT_BIO: 'about_bio',
   ABOUT_STATS: 'about_stats',
@@ -112,6 +115,18 @@ export const DEFAULT_CONTENT = {
   [CONTENT_SECTIONS.HOME_HERO]: {
     title: "Capturing Moments, Creating Memories",
     subtitle: "Professional photography that tells your story through stunning visuals and creative composition."
+  },
+  [CONTENT_SECTIONS.HOME_TOP_TEXT]: {
+    text: "OUR PASSIONATE PHOTOGRAPHERS DELIVER STUNNING VISUALS"
+  },
+  [CONTENT_SECTIONS.HOME_MAIN_TITLE]: {
+    leftText: "VINTAGE",
+    middleText: "THROUGH",
+    rightText: "LENS",
+    italicText: "experiences"
+  },
+  [CONTENT_SECTIONS.HOME_BUTTON_TEXT]: {
+    text: "BOOK NOW"
   },
   [CONTENT_SECTIONS.HOME_ABOUT]: {
     title: "About the Photographer",

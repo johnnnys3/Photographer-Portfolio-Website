@@ -103,8 +103,21 @@ export function ContactPage() {
     setIsSubmitting(true);
     
     try {
-      // Simulate form submission
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Send email via API route
+      const response = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to send message');
+      }
+
       setSubmitted(true);
       setFormErrors({});
       setFormData({ name: '', email: '', subject: '', message: '' });
@@ -114,8 +127,9 @@ export function ContactPage() {
         setSubmitted(false);
       }, 5000);
     } catch (error) {
+      console.error('Contact form submission error:', error);
       setFormErrors({ 
-        submit: 'Failed to send message. Please try again later.' 
+        submit: error instanceof Error ? error.message : 'Failed to send message. Please try again later.' 
       });
     } finally {
       setIsSubmitting(false);

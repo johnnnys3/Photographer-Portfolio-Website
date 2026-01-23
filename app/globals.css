@@ -1,3 +1,5 @@
+/* eslint-disable */
+/* stylelint-disable */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -126,12 +128,20 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    box-sizing: border-box;
   }
 
   body {
     @apply bg-background text-foreground;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    min-width: 320px; /* Prevent content from becoming too narrow */
+    overflow-x: hidden; /* Prevent horizontal scroll */
+  }
+  
+  html {
+    font-size: var(--font-size);
+    overflow-x: hidden; /* Prevent horizontal scroll at root level */
   }
 }
 
@@ -186,6 +196,7 @@
 
 html {
   font-size: var(--font-size);
+  overflow-x: hidden; /* Prevent horizontal scroll at root level */
 }
 
 /* Custom scrollbar hiding utility */
@@ -203,6 +214,140 @@ html {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* Custom typography and design styles */
+.outline-text {
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.3);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+}
+
+.play-button {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.play-button:hover {
+  transform: scale(1.1);
+  background: rgba(255, 255, 255, 1);
+}
+
+.play-button svg {
+  width: 24px;
+  height: 24px;
+  fill: #000;
+  margin-left: 2px;
+}
+
+.diamond-shape {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(45deg, #666 25%, transparent 25%, transparent 75%, #666 75%, #666),
+              linear-gradient(45deg, #666 25%, transparent 25%, transparent 75%, #666 75%, #666);
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px;
+  transform: rotate(45deg);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  z-index: 5;
+}
+
+.service-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.service-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-5px);
+}
+
+.tab-button {
+  background: transparent;
+  border: none;
+  color: #666;
+  font-size: 18px;
+  font-weight: 500;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-bottom: 2px solid transparent;
+}
+
+.tab-button.active {
+  color: #fff;
+  border-bottom-color: #fff;
+}
+
+.tab-button:hover {
+  color: #fff;
+}
+
+.testimonial-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 40px;
+  backdrop-filter: blur(10px);
+}
+
+.faq-item {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 10px;
+}
+
+.faq-question {
+  padding: 20px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #fff;
+  font-weight: 500;
+}
+
+.faq-answer {
+  padding: 0 20px 20px;
+  color: #ccc;
+  line-height: 1.6;
+}
+
+.circular-element {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.circular-element:hover {
+  transform: scale(1.05);
+}
+
+.x-shape {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 120px;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.1);
+  z-index: 1;
 }
 
 /* Dark mode styles */

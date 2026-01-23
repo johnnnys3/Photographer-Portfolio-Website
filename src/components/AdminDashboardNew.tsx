@@ -906,9 +906,122 @@ export function AdminDashboard() {
                 )}
                 
                 <div className="space-y-6">
+                  {/* Home Top Text Section */}
+                  <div className="border rounded-lg p-4">
+                    <h3 className="font-medium mb-4">Home Page - Top Text</h3>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Top Banner Text</label>
+                      <input
+                        type="text"
+                        value={siteContent[CONTENT_SECTIONS.HOME_TOP_TEXT]?.text || ''}
+                        onChange={(e) => setSiteContent(prev => ({
+                          ...prev,
+                          [CONTENT_SECTIONS.HOME_TOP_TEXT]: {
+                            ...prev[CONTENT_SECTIONS.HOME_TOP_TEXT],
+                            text: e.target.value
+                          }
+                        }))}
+                        className="w-full px-3 py-2 border rounded-lg"
+                        placeholder="Top banner text"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Home Main Title Section */}
+                  <div className="border rounded-lg p-4">
+                    <h3 className="font-medium mb-4">Home Page - Main Typography</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Left Text</label>
+                        <input
+                          type="text"
+                          value={siteContent[CONTENT_SECTIONS.HOME_MAIN_TITLE]?.leftText || ''}
+                          onChange={(e) => setSiteContent(prev => ({
+                            ...prev,
+                            [CONTENT_SECTIONS.HOME_MAIN_TITLE]: {
+                              ...prev[CONTENT_SECTIONS.HOME_MAIN_TITLE],
+                              leftText: e.target.value
+                            }
+                          }))}
+                          className="w-full px-3 py-2 border rounded-lg"
+                          placeholder="Left main title"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Middle Text</label>
+                        <input
+                          type="text"
+                          value={siteContent[CONTENT_SECTIONS.HOME_MAIN_TITLE]?.middleText || ''}
+                          onChange={(e) => setSiteContent(prev => ({
+                            ...prev,
+                            [CONTENT_SECTIONS.HOME_MAIN_TITLE]: {
+                              ...prev[CONTENT_SECTIONS.HOME_MAIN_TITLE],
+                              middleText: e.target.value
+                            }
+                          }))}
+                          className="w-full px-3 py-2 border rounded-lg"
+                          placeholder="Middle text"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Right Text</label>
+                        <input
+                          type="text"
+                          value={siteContent[CONTENT_SECTIONS.HOME_MAIN_TITLE]?.rightText || ''}
+                          onChange={(e) => setSiteContent(prev => ({
+                            ...prev,
+                            [CONTENT_SECTIONS.HOME_MAIN_TITLE]: {
+                              ...prev[CONTENT_SECTIONS.HOME_MAIN_TITLE],
+                              rightText: e.target.value
+                            }
+                          }))}
+                          className="w-full px-3 py-2 border rounded-lg"
+                          placeholder="Right main title"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Italic Text</label>
+                        <input
+                          type="text"
+                          value={siteContent[CONTENT_SECTIONS.HOME_MAIN_TITLE]?.italicText || ''}
+                          onChange={(e) => setSiteContent(prev => ({
+                            ...prev,
+                            [CONTENT_SECTIONS.HOME_MAIN_TITLE]: {
+                              ...prev[CONTENT_SECTIONS.HOME_MAIN_TITLE],
+                              italicText: e.target.value
+                            }
+                          }))}
+                          className="w-full px-3 py-2 border rounded-lg"
+                          placeholder="Italic text"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Home Button Text Section */}
+                  <div className="border rounded-lg p-4">
+                    <h3 className="font-medium mb-4">Home Page - Button Text</h3>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Button Text</label>
+                      <input
+                        type="text"
+                        value={siteContent[CONTENT_SECTIONS.HOME_BUTTON_TEXT]?.text || ''}
+                        onChange={(e) => setSiteContent(prev => ({
+                          ...prev,
+                          [CONTENT_SECTIONS.HOME_BUTTON_TEXT]: {
+                            ...prev[CONTENT_SECTIONS.HOME_BUTTON_TEXT],
+                            text: e.target.value
+                          }
+                        }))}
+                        className="w-full px-3 py-2 border rounded-lg"
+                        placeholder="Button text"
+                      />
+                    </div>
+                  </div>
+
                   {/* Home Hero Section */}
                   <div className="border rounded-lg p-4">
-                    <h3 className="font-medium mb-4">Home Page - Hero Section</h3>
+                    <h3 className="font-medium mb-4">Home Page - Hero Section (Legacy)</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Main Title</label>

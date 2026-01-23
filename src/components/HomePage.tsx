@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { useData } from '../contexts/DataContext';
+import { getSiteContent } from '../services/contentService';
+import { CONTENT_SECTIONS } from '../services/contentService';
 import type { DatabaseImage } from '../lib/supabase';
 
 interface HomePageProps {
@@ -10,8 +12,18 @@ interface HomePageProps {
 }
 
 export function HomePage({ onImageClick }: HomePageProps) {
-  const { images, loading: dataLoading } = useData();
-  const [currentImageSet, setCurrentImageSet] = useState(0);
+  const { images } = useData();
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [content, setContent] = useState({
+    heroTitle: "STUNNING MODEL<br />PHOTOGRAPHY",
+    heroDescription: "From concept to creation, we craft breathtaking images that highlight your models and elevate your brand.",
+    buttonText: "Book Now",
+    specializeTitle: "WE SPECIALIZE IN BRINGING YOUR CREATIVE CONCEPTS TO LIFE",
+    projectsCompleted: "500+",
+    projectsCompletedLabel: "Projects Completed",
+    clientSatisfaction: "95%",
+    clientSatisfactionLabel: "Client Satisfaction"
+  });
 
   // Filter portrait images from database
   const portraitImages = images.filter((img: DatabaseImage) => {
@@ -19,197 +31,248 @@ export function HomePage({ onImageClick }: HomePageProps) {
     return (img.height && img.width && img.height > img.width) || img.gallery === 'portraits';
   });
 
-  // Create sets of 3 portrait images for rotation
-  const createImageSets = () => {
-    const sets = [];
-    const shuffled = [...portraitImages].sort(() => Math.random() - 0.5);
-    
-    // Create as many full sets of 3 as possible
-    for (let i = 0; i < shuffled.length; i += 3) {
-      const set = shuffled.slice(i, i + 3);
-      // If we have less than 3 images, fill from the beginning
-      while (set.length < 3 && shuffled.length > 0) {
-        const missingCount = 3 - set.length;
-        const additionalImages = shuffled.slice(0, missingCount);
-        set.push(...additionalImages);
-      }
-      sets.push(set);
+  // Use all images if not enough portrait images
+  const displayImages = portraitImages.length >= 2 ? portraitImages : images;
+
+  // Shuffle images on component mount for random display
+  useEffect(() => {
+    if (displayImages.length > 0) {
+      const randomIndex = Math.floor(Math.random() * displayImages.length);
+      setCurrentImageIndex(randomIndex);
     }
-    
-    // If we don't have enough portrait images, supplement with landscape images
-    if (sets.length === 0 && images.length > 0) {
-      const shuffledAll = [...images].sort(() => Math.random() - 0.5);
-      const firstSet = shuffledAll.slice(0, 3);
-      // Fill remaining slots if needed
-      while (firstSet.length < 3 && shuffledAll.length > 0) {
-        firstSet.push(shuffledAll[firstSet.length % shuffledAll.length]);
+  }, [displayImages.length]);
+
+  // Load dynamic content from content service
+  useEffect(() => {
+    const loadContent = async () => {
+      try {
+        const [heroTitleContent, heroDescriptionContent, buttonTextContent, specializeTitleContent, projectsCompletedContent, clientSatisfactionContent] = await Promise.all([
+          getSiteContent(CONTENT_SECTIONS.HOME_MAIN_TITLE),
+          getSiteContent(CONTENT_SECTIONS.HOME_TOP_TEXT), // Using for hero description
+          getSiteContent(CONTENT_SECTIONS.HOME_BUTTON_TEXT),
+          getSiteContent('HOME_SPECIALIZE_TITLE'), // New section
+          getSiteContent('HOME_PROJECTS_COMPLETED'), // New section
+          getSiteContent('HOME_CLIENT_SATISFACTION') // New section
+        ]);
+
+        setContent({
+          heroTitle: heroTitleContent?.content?.text || "STUNNING MODEL<br />PHOTOGRAPHY",
+          heroDescription: heroDescriptionContent?.content?.text || "From concept to creation, we craft breathtaking images that highlight your models and elevate your brand.",
+          buttonText: buttonTextContent?.content?.text || "Book Now",
+          specializeTitle: specializeTitleContent?.content?.text || "WE SPECIALIZE IN BRINGING YOUR CREATIVE CONCEPTS TO LIFE",
+          projectsCompleted: projectsCompletedContent?.content?.number || "500+",
+          projectsCompletedLabel: projectsCompletedContent?.content?.label || "Projects Completed",
+          clientSatisfaction: clientSatisfactionContent?.content?.number || "95%",
+          clientSatisfactionLabel: clientSatisfactionContent?.content?.label || "Client Satisfaction"
+        });
+      } catch (error) {
+        console.error('Failed to load homepage content:', error);
+        // Keep default values on error
       }
-      sets.push(firstSet.slice(0, 3));
-    }
-    
-    return sets;
+    };
+
+    loadContent();
+  }, []);
+
+  const handlePreviousImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + displayImages.length) % displayImages.length);
   };
 
-  const imageSets = createImageSets();
-  const currentSet = imageSets[currentImageSet] || [];
+  const handleNextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % displayImages.length);
+  };
 
-  // Debug logging
-  console.log('Total portrait images:', portraitImages.length);
-  console.log('Total image sets created:', imageSets.length);
-  console.log('Current image set index:', currentImageSet);
-  console.log('Current set images:', currentSet.map(img => ({ id: img.id, title: img.title, gallery: img.gallery })));
-  console.log('All sets:', imageSets.map((set, index) => ({
-    setIndex: index,
-    imageCount: set.length,
-    imageIds: set.map(img => img.id)
-  })));
-
-  // Only shuffle on initial load - no auto-rotation
-  useEffect(() => {
-    setCurrentImageSet(0);
-  }, [images]);
+  const leftImage = displayImages[currentImageIndex];
+  const rightImage = displayImages[(currentImageIndex + 1) % displayImages.length];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black">
-      {/* Hero Section - Photography Focus */}
-      <div className="bg-white dark:bg-black px-4 sm:px-6 lg:px-8 w-full flex items-center justify-center mt-16" style={{ minHeight: 'calc(100vh - 64px)' }}>
-        <div className="w-full max-w-6xl mx-auto text-center">
-          {/* Main Heading */}
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl mb-6 text-black dark:text-white font-bold leading-tight">
-            Capturing moments. Creating memories.
-          </h1>
-          
-          {/* Subtitle */}
-          <p className="text-lg sm:text-xl lg:text-2xl text-gray-600 dark:text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
-            Professional photography that tells your story through stunning visuals and creative composition.
-          </p>
-          
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link
-              href="/contact"
-              className="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-black dark:text-white border border-black dark:border-gray-600 py-3 px-8 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg text-lg font-medium"
-            >
-              Book Session
-            </Link>
+    <div className="min-h-screen bg-white dark:bg-black relative">
+      {/* Hero Section - Clean Layout */}
+      <div className="relative w-full h-screen flex items-center justify-center overflow-hidden pt-20">
+        {/* Center Content - Clean Layout */}
+        <div className="relative z-20 max-w-7xl mx-auto px-8 w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left Side - Title and Button */}
+            <div className="text-left">
+              <h1 
+                className="text-5xl sm:text-6xl lg:text-7xl text-black dark:text-white font-black leading-none mb-6"
+                dangerouslySetInnerHTML={{ __html: content.heroTitle }}
+              />
+              
+              {/* Book Now Button */}
+              <div className="mt-8">
+                <Link
+                  href="/contact"
+                  className="group bg-white dark:bg-white text-black py-3 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-lg text-base font-medium flex items-center gap-2 w-fit"
+                >
+                  {content.buttonText}
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </div>
+            </div>
+            
+            {/* Right Side - Description Text */}
+            <div className="text-left lg:text-right">
+              <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 font-light leading-relaxed max-w-md lg:ml-auto">
+                {content.heroDescription}
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Featured Gallery Section - Grid */}
-      <div className="bg-white dark:bg-black py-16 px-4 sm:px-6 lg:px-8 w-full">
-        <div className="w-full max-w-7xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl mb-12 text-black dark:text-white text-center font-bold">
-            Featured Gallery
-          </h2>
-          
-          {/* Grid Layout */}
-          {dataLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="aspect-square bg-gray-200 dark:bg-gray-700 animate-pulse rounded-lg"></div>
-              ))}
+      {/* Introduction Section with Images */}
+      <div className="relative w-full py-24 px-6 lg:px-12">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center gap-4 mb-8">
+            <div className="w-12 h-12 border-2 border-gray-400 dark:border-gray-600 rounded-full flex items-center justify-center">
+              <span className="text-gray-600 dark:text-gray-300 text-xl font-bold">+</span>
             </div>
-          ) : currentSet.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-              {currentSet.map((image, index) => {
-                // Force portrait aspect ratio for all images
-                const aspectRatio = '3 / 4'; // Portrait ratio
-                
-                return (
-                  <div
-                    key={`${image.id}-${currentImageSet}-${index}`}
-                    onClick={() => onImageClick(image.id)}
-                    className="relative overflow-hidden rounded-lg cursor-pointer transition duration-300 ease-in-out transform hover:scale-105 shadow-md hover:shadow-xl group"
+            <h2 className="text-4xl lg:text-6xl text-black dark:text-white font-black uppercase tracking-tight">
+              {content.specializeTitle}
+            </h2>
+          </div>
+          
+          {/* Images Section - Original Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mt-16">
+            {/* Left Side - Images */}
+            <div className="relative">
+              <div className="relative h-[600px]">
+                {/* Left Image */}
+                {leftImage && (
+                  <div 
+                    className="absolute left-0 top-0 w-[380px] lg:w-[450px] h-[480px] lg:h-[550px] overflow-hidden rounded-lg shadow-2xl cursor-pointer transition duration-300 ease-in-out hover:scale-105 z-10"
+                    onClick={() => onImageClick(leftImage.id)}
                   >
-                    <div 
-                      className="relative w-full bg-gray-100 dark:bg-gray-800"
-                      style={{ aspectRatio }}
-                    >
-                      <img
-                        src={image.url}
-                        alt={image.title}
-                        className="w-full h-full object-cover"
-                        style={{ objectPosition: 'center' }}
-                        loading="lazy"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition duration-300 ease-in-out flex items-end justify-center z-10">
-                        <h3 className="text-white text-xl font-semibold p-4">
-                          {image.title}
-                        </h3>
-                      </div>
-                    </div>
+                    <img
+                      src={leftImage.url}
+                      alt={leftImage.title}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
                   </div>
-                );
-              })}
-            </div>
-          ) : null}
+                )}
 
-          {/* Navigation Controls */}
-          <div className="flex justify-center items-center gap-4 mt-8">
-            <button
-              onClick={() => setCurrentImageSet((prev) => (prev - 1 + imageSets.length) % imageSets.length)}
-              disabled={imageSets.length <= 1}
-              className="p-2 rounded-full bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition duration-300"
-              aria-label="Previous images"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            
-            <div className="flex gap-2">
-              {imageSets.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentImageSet(index)}
-                  className={`w-2 h-2 rounded-full transition duration-300 ${
-                    index === currentImageSet 
-                      ? 'bg-black dark:bg-white' 
-                      : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
-                  }`}
-                  aria-label={`Go to image set ${index + 1}`}
-                />
-              ))}
+                {/* Right Image */}
+                {rightImage && (
+                  <div 
+                    className="absolute right-0 top-0 w-[380px] lg:w-[450px] h-[480px] lg:h-[550px] overflow-hidden rounded-lg shadow-2xl cursor-pointer transition duration-300 ease-in-out hover:scale-105 z-10"
+                    onClick={() => onImageClick(rightImage.id)}
+                  >
+                    <img
+                      src={rightImage.url}
+                      alt={rightImage.title}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                  />
+                  </div>
+                )}
+
+                {/* Diamond Shape */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-gray-400 transform rotate-45 z-5"></div>
+
+                {/* Navigation Arrows */}
+                {displayImages.length > 1 && (
+                  <>
+                    <button
+                      onClick={handlePreviousImage}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 dark:bg-black/10 text-black dark:text-white hover:bg-white/20 dark:hover:bg-black/20 transition duration-300 z-30 backdrop-blur-sm"
+                      aria-label="Previous images"
+                    >
+                      <ChevronLeft className="w-6 h-6" />
+                    </button>
+                    <button
+                      onClick={handleNextImage}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 dark:bg-black/10 text-black dark:text-white hover:bg-white/20 dark:hover:bg-black/20 transition duration-300 z-30 backdrop-blur-sm"
+                      aria-label="Next images"
+                    >
+                      <ChevronRight className="w-6 h-6" />
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
             
-            <button
-              onClick={() => setCurrentImageSet((prev) => (prev + 1) % imageSets.length)}
-              disabled={imageSets.length <= 1}
-              className="p-2 rounded-full bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition duration-300"
-              aria-label="Next images"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
+            {/* Right Side - Statistics */}
+            <div className="space-y-8">
+              <div className="text-center">
+                <div className="text-6xl lg:text-8xl text-black dark:text-white font-black mb-2">{content.projectsCompleted}</div>
+                <p className="text-gray-600 dark:text-gray-300 text-lg">{content.projectsCompletedLabel}</p>
+              </div>
+              <div className="text-center">
+                <div className="text-6xl lg:text-8xl text-black dark:text-white font-black mb-2">{content.clientSatisfaction}</div>
+                <p className="text-gray-600 dark:text-gray-300 text-lg">{content.clientSatisfactionLabel}</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* About Preview Section */}
-      <div className="bg-gray-50 dark:bg-gray-900 py-16 px-4 sm:px-6 lg:px-8 w-full">
-        <div className="w-full max-w-6xl mx-auto text-center">
-          {/* About Label */}
-          <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 tracking-wide uppercase">
-            About
-          </p>
-          
-          <h2 className="text-3xl sm:text-4xl mb-6 text-black dark:text-white font-bold">
-            Behind the Lens
+      {/* BRINGS YOUR VISION TO LIFE Section */}
+      <div className="relative w-full py-24 px-6 lg:px-12">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-4xl lg:text-6xl text-white font-black text-center mb-16">
+            BRINGS YOUR VISION TO LIFE
           </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-8">
-            With over a decade of experience in professional photography, I specialize in capturing 
-            beauty of moments through landscape, portrait, and event photography. My work has been 
-            featured in numerous publications and exhibitions worldwide.
-          </p>
-          <Link
-            href="/about"
-            className="text-black dark:text-white hover:text-gray-800 dark:hover:text-gray-200 text-lg inline-flex items-center gap-2 transition duration-300 font-medium"
-          >
-            Learn More
-            <ArrowRight className="w-5 h-5" />
-          </Link>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="service-card p-8 rounded-lg text-center">
+              <div className="w-16 h-16 border-2 border-gray-400 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="w-8 h-8 bg-gray-400 rounded-full"></div>
+              </div>
+              <h3 className="text-xl text-white font-bold mb-4">Model Profiles & Bios</h3>
+              <p className="text-gray-400">Professional model profiles with compelling biographies that capture your unique essence and appeal to clients.</p>
+              <div className="mt-6 flex justify-center">
+                <div className="w-8 h-8 border border-gray-400 rounded-full flex items-center justify-center">
+                  <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="service-card p-8 rounded-lg text-center">
+              <div className="w-16 h-16 border-2 border-gray-400 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="w-8 h-8 bg-gray-400 rounded-full"></div>
+              </div>
+              <h3 className="text-xl text-white font-bold mb-4">Portfolio & Lookbook Designs</h3>
+              <p className="text-gray-400">Stunning portfolio and lookbook designs that showcase your versatility and professional modeling capabilities.</p>
+              <div className="mt-6 flex justify-center">
+                <div className="w-8 h-8 border border-gray-400 rounded-full flex items-center justify-center">
+                  <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="service-card p-8 rounded-lg text-center">
+              <div className="w-16 h-16 border-2 border-gray-400 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="w-8 h-8 bg-gray-400 rounded-full"></div>
+              </div>
+              <h3 className="text-xl text-white font-bold mb-4">Website & About Page Copy</h3>
+              <p className="text-gray-400">Compelling website content and about page copy that tells your story and connects with your target audience.</p>
+              <div className="mt-6 flex justify-center">
+                <div className="w-8 h-8 border border-gray-400 rounded-full flex items-center justify-center">
+                  <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* CRAFTING STORIES IN EXCEPTIONAL TALENT Text Carousel */}
+      <div className="relative w-full py-24 px-6 lg:px-12">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center">
+            <h2 className="text-4xl lg:text-6xl text-white font-black mb-8">
+              CRAFTING STORIES IN EXCEPTIONAL TALENT
+            </h2>
+            
+            {/* Simple carousel indicators */}
+            <div className="flex justify-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-white"></div>
+              <div className="w-2 h-2 rounded-full bg-gray-600"></div>
+              <div className="w-2 h-2 rounded-full bg-gray-600"></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

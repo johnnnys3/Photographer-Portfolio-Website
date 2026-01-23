@@ -58,8 +58,8 @@ export function Navigation({ currentPage }: NavigationProps) {
   };
 
   const navLinks = [
-    { id: 'portfolio', label: 'Portfolio', href: '/galleries' },
     { id: 'about', label: 'About', href: '/about' },
+    { id: 'portfolio', label: 'Portfolio', href: '/galleries' },
     { id: 'contact', label: 'Contact', href: '/contact' },
   ];
 
@@ -74,64 +74,48 @@ export function Navigation({ currentPage }: NavigationProps) {
   const currentPg = currentPage || getCurrentPage();
 
   return (
-    <nav className="bg-white dark:bg-black shadow-sm fixed top-0 left-0 right-0 z-50 w-full">
-      <div className="w-full px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Left Navigation - Back Button + Logo */}
-          <div className="flex items-center space-x-4">
-            {pathname !== '/' && (
-              <button
-                onClick={() => router.back()}
-                className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition duration-300"
-                aria-label="Go back"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-            )}
-            
-            {/* Logo - LENS */}
+    <nav className="bg-white dark:bg-black fixed top-0 left-0 right-0 z-50 w-full border-b border-gray-200 dark:border-gray-800">
+      <div className="w-full px-6 lg:px-12">
+        <div className="flex justify-between items-center h-20 w-full">
+          {/* Left - Back Button and Abstract Logo */}
+          <div className="flex items-center justify-center h-full gap-4">
+            <button
+              onClick={() => router.back()}
+              className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition duration-300"
+              aria-label="Go back"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
             <Link 
               href="/"
-              className="flex items-center space-x-2 cursor-pointer"
+              className="cursor-pointer"
             >
-              <span className="text-xl font-bold text-black dark:text-white">
-                LENS
-              </span>
+              <div className="w-10 h-10 bg-black dark:bg-white rounded-sm transform rotate-45"></div>
             </Link>
           </div>
 
-          {/* Center Navigation - Home + Navigation Links */}
-          <div className="hidden md:flex flex-1 items-center justify-center">
-            <div className="flex items-center space-x-8 max-w-6xl mx-auto px-4" style={{ marginLeft: '535px' }}>
-              {/* Home Button - always show in center */}
+          {/* Center - Navigation Links */}
+          <div className="hidden md:flex items-center justify-center h-full flex-1 gap-8">
+            {navLinks.map((link) => (
               <Link
-                href="/"
-                className="px-4 py-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-black dark:hover:text-white transition duration-300 font-medium flex items-center"
-                aria-label="Go home"
+                key={link.id}
+                href={link.href}
+                className={`font-medium transition duration-300 hover:text-gray-600 dark:hover:text-gray-400 ${
+                  currentPg === link.id ? 'text-black dark:text-white' : 'text-gray-500 dark:text-gray-500'
+                }`}
               >
-                Home
+                {link.label}
               </Link>
-              
-              {/* Navigation Links */}
-              {navLinks.map((link) => (
-                <Link
-                  key={link.id}
-                  href={link.href}
-                  className={`transition duration-300 ease-in-out flex items-center ${
-                    currentPg === link.id
-                      ? 'text-black dark:text-white font-medium'
-                      : 'text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white'
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
+            ))}
           </div>
 
-          {/* Right Navigation - Theme Toggle & Book Session */}
-          <div className="flex items-center space-x-4">
-            {/* Dark/Light Mode Toggle */}
+          {/* Right - Profile Icon, Dark Mode Toggle and Mobile Menu */}
+          <div className="flex items-center justify-end h-full gap-4">
+            <div className="hidden md:block">
+              <div className="w-10 h-10 rounded-full border-2 border-gray-400 dark:border-gray-600 bg-gray-100 dark:bg-gray-800 cursor-pointer hover:border-gray-600 dark:hover:border-gray-400 transition duration-300 flex items-center justify-center">
+                <span className="text-gray-600 dark:text-gray-300 font-bold">C</span>
+              </div>
+            </div>
             <button
               onClick={toggleDarkMode}
               className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition duration-300"
@@ -143,115 +127,91 @@ export function Navigation({ currentPage }: NavigationProps) {
                 <Moon className="w-5 h-5" />
               )}
             </button>
-            
-            {/* Book Session Button */}
-            <div className="hidden md:block">
-              <Link
-                href="/contact"
-                className="bg-black dark:bg-white text-white dark:text-black px-6 py-2 rounded-lg transition duration-300 ease-in-out hover:bg-gray-800 dark:hover:bg-gray-200 flex items-center"
-              >
-                Book Session
-              </Link>
-            </div>
+            <button
+              className="md:hidden p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? (
+                <X className="w-6 h-6" />
+              ) : (
+                <Menu className="w-6 h-6" />
+              )}
+            </button>
           </div>
-
-          {/* Mobile Menu Button - Tailwind: md:hidden */}
-          <button
-            className="md:hidden p-2 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? (
-              <X className="w-6 h-6" />
-            ) : (
-              <Menu className="w-6 h-6" />
-            )}
-          </button>
         </div>
       </div>
 
-      {/* Mobile Menu - Tailwind: md:hidden bg-white border-t */}
+      {/* Mobile Menu - Full navigation overlay */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-white dark:bg-black border-t border-gray-200 dark:border-gray-700">
-          <div className="px-2 pt-4 pb-3 space-y-1">
-            {/* Logo - LENS */}
-            <div className="flex items-center justify-center pb-4 border-b border-gray-200 dark:border-gray-700">
-              <Link 
-                href="/"
+        <div className="fixed inset-0 bg-white dark:bg-black z-50">
+          <div className="flex flex-col h-full">
+            {/* Mobile Menu Header */}
+            <div className="flex justify-between items-center h-20 px-6 lg:px-12 border-b border-gray-200 dark:border-gray-800">
+              <div className="flex items-center">
+                <Link 
+                  href="/"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="cursor-pointer"
+                >
+                  <div className="w-10 h-10 bg-black dark:bg-white rounded-sm transform rotate-45"></div>
+                </Link>
+              </div>
+              <button
+                className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center space-x-2 cursor-pointer py-2"
               >
-                <span className="text-xl font-bold text-black dark:text-white">
-                  LENS
-                </span>
-              </Link>
+                <X className="w-6 h-6" />
+              </button>
             </div>
             
             {/* Mobile Navigation Links */}
-            {navLinks.map((link) => (
-              <Link
-                key={link.id}
-                href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className={`block w-full text-left px-3 py-2 rounded-md transition duration-300 ${
-                  currentPg === link.id
-                    ? 'bg-gray-100 dark:bg-gray-800 text-black dark:text-white font-medium'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
-            
-            {/* Mobile Action Buttons */}
-            <div className="flex items-center justify-between px-3 py-2 border-t border-gray-200 dark:border-gray-700 mt-2 pt-4">
-              <div className="flex items-center space-x-2">
-                {pathname !== '/' && (
-                  <button
-                    onClick={() => {
-                      router.back();
-                      setMobileMenuOpen(false);
-                    }}
-                    className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition duration-300"
-                    aria-label="Go back"
-                  >
-                    <ArrowLeft className="w-4 h-4" />
-                  </button>
-                )}
-                
+            <div className="flex-1 flex flex-col justify-center items-center space-y-8 px-4">
+              {navLinks.map((link) => (
                 <Link
-                  href="/"
+                  key={link.id}
+                  href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="px-3 py-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-black dark:hover:text-white transition duration-300 font-medium"
-                  aria-label="Go home"
+                  className={`text-2xl font-bold transition duration-300 ${
+                    currentPg === link.id
+                      ? 'text-black dark:text-white'
+                      : 'text-gray-500 dark:text-gray-500 hover:text-black dark:hover:text-white'
+                  }`}
                 >
-                  Home
+                  {link.label}
                 </Link>
+              ))}
+              
+              {/* Profile Icon */}
+              <div className="w-12 h-12 rounded-full border-2 border-gray-400 dark:border-gray-600 bg-gray-100 dark:bg-gray-800 cursor-pointer hover:border-gray-600 dark:hover:border-gray-400 transition duration-300 flex items-center justify-center">
+                <span className="text-gray-600 dark:text-gray-300 font-bold text-lg">C</span>
               </div>
               
-              <div className="flex items-center space-x-2">
+              {/* Dark Mode Toggle */}
+              <button
+                onClick={toggleDarkMode}
+                className="p-3 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition duration-300 flex items-center justify-center"
+                aria-label="Toggle dark mode"
+              >
+                {darkMode ? (
+                  <Sun className="w-6 h-6" />
+                ) : (
+                  <Moon className="w-6 h-6" />
+                )}
+              </button>
+              
+              {/* Back Button (only when not on homepage) */}
+              {pathname !== '/' && (
                 <button
                   onClick={() => {
-                    toggleDarkMode();
+                    router.back();
                     setMobileMenuOpen(false);
                   }}
-                  className="p-2 rounded-md text-gray-600 hover:bg-gray-100 transition duration-300"
-                  aria-label="Toggle dark mode"
+                  className="p-3 rounded-md text-gray-500 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition duration-300 flex items-center justify-center"
+                  aria-label="Go back"
                 >
-                  {darkMode ? (
-                    <Sun className="w-4 h-4" />
-                  ) : (
-                    <Moon className="w-4 h-4" />
-                  )}
+                  <ArrowLeft className="w-6 h-6" />
                 </button>
-                
-                <Link
-                  href="/contact"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="px-3 py-2 rounded-md bg-black dark:bg-white text-white dark:text-black font-medium transition duration-300"
-                >
-                  Book Session
-                </Link>
-              </div>
+              )}
             </div>
           </div>
         </div>

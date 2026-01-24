@@ -5,10 +5,10 @@
   "installCommand": "npm ci --no-optional",
   "functions": {
     "app/**/*.ts": {
-      "runtime": "nodejs18.x"
+      "runtime": "@vercel/node"
     },
     "app/**/*.tsx": {
-      "runtime": "nodejs18.x"
+      "runtime": "@vercel/node"
     }
   }
 }

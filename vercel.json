@@ -2,13 +2,5 @@
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "framework": "nextjs",
-  "installCommand": "npm ci --no-optional",
-  "functions": {
-    "app/**/*.ts": {
-      "runtime": "@vercel/node"
-    },
-    "app/**/*.tsx": {
-      "runtime": "@vercel/node"
-    }
-  }
+  "installCommand": "npm ci --no-optional"
 }

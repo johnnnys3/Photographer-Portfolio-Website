@@ -24,10 +24,6 @@ export default function Admin() {
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [requireAuth, setRequireAuth] = useState(true); // Always require auth for admin page
 
-  const handleImageClick = (imageId: string) => {
-    setSelectedImageId(imageId);
-  };
-
   const handleCloseLightbox = () => {
     setSelectedImageId(null);
   };

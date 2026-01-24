@@ -17,7 +17,7 @@ export interface ImageOptimizationOptions {
  */
 export function getOptimizedImageUrl(
   originalUrl: string, 
-  options: ImageOptimizationOptions = {}
+  _options: ImageOptimizationOptions = {}
 ): string {
   // For now, return original URL since we don't have a CDN configured
   // In production, this would append optimization parameters to the URL

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { HybridMasonry } from './ResponsiveMasonry';
 import { useData } from '../contexts/DataContext';
 
 interface GalleryPageProps {

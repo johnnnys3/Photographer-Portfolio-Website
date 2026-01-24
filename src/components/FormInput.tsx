@@ -39,7 +39,6 @@ export function FormInput({
 }: FormInputProps) {
   const [touched, setTouched] = useState(false);
   const [validation, setValidation] = useState<ValidationResult>({ isValid: true, error: null });
-  const [isFocused, setIsFocused] = useState(false);
 
   // Validate field when value changes (if enabled)
   useEffect(() => {
@@ -70,9 +69,8 @@ export function FormInput({
   };
 
   // Handle blur event
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleBlur = () => {
     setTouched(true);
-    setIsFocused(false);
     
     if (validateOnBlur && validator) {
       validateField();
@@ -81,7 +79,7 @@ export function FormInput({
 
   // Handle focus event
   const handleFocus = () => {
-    setIsFocused(true);
+    // Focus handling can be added here if needed
   };
 
   // Determine input styling based on validation state

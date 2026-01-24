@@ -17,11 +17,7 @@ const iconMap: Record<string, LucideIcon> = {
   MapPin,
 };
 
-interface AboutPageProps {
-  onNavigate?: (page: string) => void;
-}
-
-export function AboutPage({ onNavigate }: AboutPageProps) {
+export function AboutPage() {
   const [siteContent, setSiteContent] = useState<any>({});
   const [loading, setLoading] = useState(true);
 

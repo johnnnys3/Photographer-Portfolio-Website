@@ -89,7 +89,7 @@ function AppContent() {
           <GalleryPage onImageClick={handleImageClick} />
         )}
         {currentPage === 'about' && (
-          <AboutPage onNavigate={handleNavigate} />
+          <AboutPage />
         )}
         {currentPage === 'contact' && <ContactPage />}
         {currentPage === 'admin' && user && isAdmin && sessionValid && <AdminDashboard />}

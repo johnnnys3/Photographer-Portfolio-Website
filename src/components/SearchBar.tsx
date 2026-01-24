@@ -10,7 +10,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, X, Filter, ChevronDown } from 'lucide-react';
+import { Search, X, Filter } from 'lucide-react';
 import { searchEngine, SearchFilters, SearchResult } from '../lib/searchUtils';
 import type { DatabaseImage } from '../lib/supabase';
 

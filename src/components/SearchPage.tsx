@@ -4,7 +4,6 @@ import { SearchBar } from './SearchBar';
 import { SearchResults, SearchStats } from './SearchResults';
 import { SearchResult, searchEngine } from '../lib/searchUtils';
 import { useData } from '../contexts/DataContext';
-import type { DatabaseImage } from '../lib/supabase';
 
 interface SearchPageProps {
   onNavigate: (page: string) => void;

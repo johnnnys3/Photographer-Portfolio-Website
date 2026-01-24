@@ -165,7 +165,7 @@ export class TouchInteractionManager {
   }
 }
 
-import React, { useMemo, useEffect, useRef } from 'react';
+import React, { useMemo, useEffect } from 'react';
 
 /**
  * Hook for touch interactions

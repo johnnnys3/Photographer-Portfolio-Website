@@ -8,15 +8,21 @@
  */
 
 import './globals.css';
-import { Metadata } from 'next';
+import { Metadata, Viewport } from 'next';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { DataProvider } from '@/contexts/DataContext';
 
 export const metadata: Metadata = {
   title: 'Photographer Portfolio Website',
-  viewport: 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes',
   // Content-Security-Policy is handled in next.config.js headers
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1.0,
+  maximumScale: 5.0,
+  userScalable: true,
 };
 
 export default function RootLayout({

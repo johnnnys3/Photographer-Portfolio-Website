@@ -1,123 +1,102 @@
+# Photographer Portfolio Website
 
-  # Photographer Portfolio Website
+A modern, responsive photographer portfolio website built with Next.js, TypeScript, Tailwind CSS, and Supabase. The platform includes a public gallery experience, image search and filtering, a secure admin panel, and image management tools for photographers.
 
-A modern, responsive photographer portfolio website built with Next.js, TypeScript, and Tailwind CSS. Features a complete admin panel with Supabase backend integration, comprehensive UI components, and advanced image management capabilities.
+## Overview
 
-## 🌟 Features
+This project is designed for photographers who need a polished online portfolio with a lightweight content management workflow. Visitors can browse galleries, view images in a lightbox, search portfolio content, and contact the photographer. Admin users can upload, edit, organize, and manage image metadata through a protected dashboard.
 
-### **Public Portfolio**
-- **Responsive Design**: Mobile-first approach with touch gestures and adaptive layouts
-- **Image Gallery**: Masonry layout with category filtering and search functionality
-- **Lightbox Viewing**: Full-screen image viewing with keyboard navigation and touch support
-- **SEO Optimized**: Clean URLs, meta tags, and semantic HTML structure
-- **Performance**: Lazy loading, optimized images, and efficient rendering
-- **Search & Discovery**: Advanced search with filters and results page
-- **Contact & About**: Professional contact form and about page integration
+## Features
 
-### **Admin Panel**
-- **Secure Authentication**: Supabase Auth with JWT tokens and session management
-- **Image Management**: Upload, edit, delete, and organize images with bulk operations
-- **Gallery Organization**: Create and manage multiple galleries with drag & drop reordering
-- **Advanced UI**: Modern interface with Radix UI components and smooth transitions
-- **Real-time Updates**: Changes appear instantly on public site
-- **Error Handling**: Comprehensive error boundaries and user feedback
-- **Form Validation**: Client-side validation with React Hook Form
-- **Touch Interactions**: Mobile-friendly admin interface
+### Public Portfolio
 
-### **Technical Features**
-- **TypeScript**: Full type safety throughout the application
-- **Component Architecture**: Modular, reusable components with shadcn/ui
-- **State Management**: React Context for auth and data management
-- **Image Optimization**: Automatic optimization and responsive delivery
-- **Security**: Row Level Security, input sanitization, and XSS protection
-- **Error Boundaries**: Graceful error handling at component and page level
+- Responsive gallery layout for desktop, tablet, and mobile
+- Image category filtering and search
+- Full-screen lightbox viewing
+- Touch-friendly navigation
+- SEO-friendly page structure
+- Contact and about pages
+- Optimized image loading for better performance
 
-## 🛠️ Technology Stack
+### Admin Panel
 
-### **Frontend**
-- **Next.js 16.1.4** - Full-stack React framework with App Router
-- **React 19.2.3** - UI framework with hooks and concurrent features
-- **TypeScript 5.9.3** - Type-safe JavaScript development
-- **Tailwind CSS 3.4.17** - Utility-first CSS framework
+- Supabase authentication
+- Protected admin dashboard
+- Image upload and management
+- Gallery organization
+- Metadata editing
+- Bulk image workflows
+- Real-time content updates
+- User-friendly error and loading states
 
-### **UI Components**
-- **Radix UI** - Headless UI primitives for accessibility
-- **shadcn/ui** - Modern, accessible component library
-- **Lucide React** - Beautiful, consistent icon system
-- **React Hook Form** - Performant forms with easy validation
+### Technical Features
 
-### **Backend & Storage**
-- **Supabase** - Backend as a Service (database, auth, storage)
-- **Row Level Security** - Fine-grained data access control
-- **JWT Authentication** - Secure session management
+- Type-safe frontend with TypeScript
+- Modular component architecture
+- Reusable UI components with shadcn/ui and Radix UI
+- Supabase database, authentication, and storage integration
+- Row Level Security support
+- Responsive design with Tailwind CSS
+- Production-ready deployment flow
 
-### **Image & Media**
-- **React Responsive Masonry** - Adaptive image layouts
-- **Embla Carousel** - Touch-friendly carousel component
-- **Custom Image Optimization** - Responsive image delivery
+## Tech Stack
 
-### **Development Tools**
-- **ESLint & TypeScript** - Code quality and type checking
-- **SWC Compiler** - Fast TypeScript compilation (via Next.js)
-- **Hot Module Replacement** - Instant development feedback (via Next.js dev server)
+### Frontend
 
-## 🚀 Development
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
+- shadcn/ui
+- Radix UI
+- Lucide React
+- React Hook Form
 
-### **Prerequisites**
-- Node.js 16+ and npm
-- Supabase account (free tier sufficient)
+### Backend and Storage
 
-### **Installation**
+- Supabase
+- Supabase Auth
+- Supabase Storage
+- PostgreSQL
+- Row Level Security
 
-1. **Clone Repository**
-   ```bash
-   git clone <your-repo-url>
-   cd "Photographer Portfolio Website"
-   ```
+## Getting Started
 
-2. **Install Dependencies**
-   ```bash
-   npm install
-   ```
+### Prerequisites
 
-3. **Environment Setup**
-   ```bash
-   # Create .env file with your Supabase credentials
-   # Copy from .env.example if available
-   ```
+- Node.js 18 or newer
+- npm
+- Supabase account
 
-4. **Supabase Setup**
-   - Create project at [supabase.com](https://supabase.com)
-   - Run SQL setup from documentation
-   - Update `.env` with Project URL and Anon Key
+### Installation
 
-5. **Start Development**
-   ```bash
-   npm run dev
-   ```
-   Development server runs on http://localhost:3000
-
-6. **Create Admin Account**
-   - Visit http://localhost:3000
-   - Click hidden lock button (bottom-left corner)
-   - Sign up for admin account
-   - Verify email and sign in
-
-### **Development Commands**
 ```bash
-npm run dev          # Start development server on port 3000
-npm run build        # Build for production (outputs to .next/ directory)
-npm run start        # Start production server
-npm run lint         # Run ESLint for code quality checks
+git clone https://github.com/johnnnys3/Photographer-Portfolio-Website.git
+cd Photographer-Portfolio-Website
+npm install
 ```
 
-### **Environment Variables**
+### Environment Setup
+
+Create a `.env.local` file and add your Supabase credentials:
+
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-### **Supabase Tables**
+### Run Locally
+
+```bash
+npm run dev
+```
+
+Open `http://localhost:3000` in your browser.
+
+## Supabase Setup
+
+Create the required `images` table in Supabase:
+
 ```sql
 CREATE TABLE images (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -134,140 +113,47 @@ CREATE TABLE images (
 );
 ```
 
-## 🎨 Usage
+Recommended production setup:
 
-### **For Visitors**
-- Browse galleries and images with smooth transitions
-- View image metadata and descriptions in lightbox
-- Search images by title, description, or tags
-- Share images on social media
-- Contact photographer through professional contact form
-- Experience touch-friendly navigation on mobile devices
+- Enable Supabase Auth
+- Configure storage bucket permissions
+- Add Row Level Security policies
+- Set production environment variables in your hosting provider
 
-### **For Photographers (Admin)**
-- Access admin panel via hidden lock button on homepage
-- Upload and organize images with drag & drop interface
-- Manage galleries and metadata with inline editing
-- Bulk upload and operations for efficient workflow
-- Track portfolio performance with real-time updates
-- Mobile-optimized admin interface for on-the-go management
+## Development Commands
 
-## 🔐 Security
-
-- **Row Level Security**: Only authenticated photographers can modify their images
-- **JWT Authentication**: Secure session management with Supabase Auth
-- **File Validation**: Comprehensive type and size checking for uploads
-- **Content Security Policy**: Configured CSP headers for XSS protection
-- **Input Sanitization**: All user inputs are properly sanitized
-- **HTTPS Only**: All connections encrypted in production
-- **Error Boundaries**: Prevent sensitive information leakage through errors
-
-## 📱 Responsive Design
-
-- **Mobile First**: Optimized for mobile devices with touch gestures
-- **Adaptive Layout**: Seamlessly works on all screen sizes
-- **Performance**: Lazy loading and optimized images for fast loading
-- **Touch Interactions**: Swipe navigation, pinch-to-zoom, and mobile gestures
-- **Accessibility**: WCAG compliant with proper ARIA labels and keyboard navigation
-
-## 🚀 Deployment
-
-### **Vercel (Recommended)**
 ```bash
-npm run build
-vercel --prod
+npm run dev      # Start development server
+npm run build    # Build for production
+npm run start    # Start production server
+npm run lint     # Run linting
 ```
 
-### **Netlify**
+## Deployment
+
+This project is suitable for deployment on Vercel.
+
 ```bash
 npm run build
-netlify deploy --prod --dir=.next
 ```
 
-### **Custom Hosting**
-Build outputs to `.next/` directory. Configure your hosting provider to:
-- Serve static files from `.next/`
-- Handle server-side rendering (SSR) with Next.js
-- Set environment variables:
-  - `NEXT_PUBLIC_SUPABASE_URL`
-  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+Production environment variables required:
 
-### **Environment Configuration**
-Production environment requires:
-- Supabase project URL and anonymous key
-- Proper CORS configuration in Supabase
-- SSL certificate for secure connections
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_production_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_production_supabase_anon_key
+```
 
-## 🛠️ Troubleshooting
+## Portfolio Value
 
-### **Common Issues**
+This project demonstrates frontend engineering, responsive UI design, authentication, image management, database integration, and production deployment using a modern React stack.
 
-**White Screen / Blank Page**
-- Check `.env` file has correct Supabase credentials
-- Verify Supabase project is active and accessible
-- Check browser console for JavaScript errors
-- Ensure all dependencies are installed
+## License
 
-**Upload Issues**
-- Verify file size limits (check Supabase storage settings)
-- Check file type restrictions (JPG, PNG, WEBP supported)
-- Verify internet connection and Supabase connectivity
-- Check storage bucket permissions in Supabase
+This project is available for educational and portfolio purposes.
 
-**Authentication Issues**
-- Verify email is confirmed in Supabase Auth
-- Check Supabase Auth settings and email templates
-- Clear browser cache and localStorage
-- Ensure proper redirect URLs configured in Supabase
+## Contact
 
-**Build Issues**
-- Clear node_modules and reinstall: `rm -rf node_modules && npm install`
-- Check TypeScript compilation errors
-- Verify all environment variables are set
-- Ensure Next.js configuration is correct
-
-### **Development Tips**
-- Use React DevTools for component debugging
-- Check Network tab for Supabase API calls
-- Use browser's responsive design mode for mobile testing
-- Enable hot reload for faster development iterations
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create feature branch: `git checkout -b feature/amazing-feature`
-3. Make your changes following existing code patterns
-4. Add TypeScript types for new functionality
-5. Test thoroughly on different screen sizes
-6. Ensure all components have proper error boundaries
-7. Submit pull request with detailed description
-
-### **Code Style**
-- Follow TypeScript best practices
-- Use functional components with hooks
-- Implement proper error handling
-- Maintain consistent naming conventions
-- Add JSDoc comments for complex functions
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🙏‍♂️ Acknowledgments
-
-- **Next.js** - Full-stack React framework with excellent developer experience
-- **React** - UI framework with hooks and concurrent features
-- **TypeScript** - Type-safe JavaScript development
-- **Tailwind CSS** - Utility-first CSS framework
-- **shadcn/ui** - Beautiful, accessible component library
-- **Radix UI** - Headless UI primitives for accessibility
-- **Lucide React** - Stunning icon system
-- **Supabase** - Powerful backend as a service platform
-- **React Hook Form** - Performant forms with easy validation
-
----
-
-**Ready to showcase your photography portfolio to the world! 📸**
-
-For detailed setup instructions, technical documentation, or support, please refer to the project documentation or create an issue in the repository.
-  
+**John Kessie**  
+GitHub: [johnnnys3](https://github.com/johnnnys3)  
+Email: johnkessie04@gmail.com

@@ -1,5 +1,10 @@
 # Photographer Portfolio Website
 
+![Next.js](https://img.shields.io/badge/Next.js-black?logo=nextdotjs&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![Tailwind](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?logo=supabase&logoColor=white)
+
 A modern, responsive photographer portfolio website built with Next.js, TypeScript, Tailwind CSS, and Supabase. The platform includes a public gallery experience, image search and filtering, a secure admin panel, and image management tools for photographers.
 
 ## Overview

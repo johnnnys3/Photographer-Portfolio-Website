@@ -4,76 +4,25 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
 ![Tailwind](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?logo=supabase&logoColor=white)
+![License](https://img.shields.io/badge/license-unspecified-lightgrey)
 
 A modern, responsive photographer portfolio website built with Next.js, TypeScript, Tailwind CSS, and Supabase. The platform includes a public gallery experience, image search and filtering, a secure admin panel, and image management tools for photographers.
 
-## Overview
-
-This project is designed for photographers who need a polished online portfolio with a lightweight content management workflow. Visitors can browse galleries, view images in a lightbox, search portfolio content, and contact the photographer. Admin users can upload, edit, organize, and manage image metadata through a protected dashboard.
-
 ## Features
 
-### Public Portfolio
-
-- Responsive gallery layout for desktop, tablet, and mobile
-- Image category filtering and search
-- Full-screen lightbox viewing
-- Touch-friendly navigation
-- SEO-friendly page structure
-- Contact and about pages
-- Optimized image loading for better performance
-
-### Admin Panel
-
-- Supabase authentication
-- Protected admin dashboard
-- Image upload and management
-- Gallery organization
-- Metadata editing
-- Bulk image workflows
-- Real-time content updates
-- User-friendly error and loading states
-
-### Technical Features
-
-- Type-safe frontend with TypeScript
-- Modular component architecture
-- Reusable UI components with shadcn/ui and Radix UI
-- Supabase database, authentication, and storage integration
-- Row Level Security support
-- Responsive design with Tailwind CSS
-- Production-ready deployment flow
+- Responsive gallery with category filtering, search, and full-screen lightbox viewing
+- Contact and about pages, SEO-friendly page structure, optimized image loading
+- Supabase-authenticated admin dashboard for image upload, editing, and organization
+- Row Level Security support and real-time content updates
+- Type-safe frontend with reusable shadcn/ui and Radix UI components
 
 ## Tech Stack
 
-### Frontend
+Frontend: Next.js, React, TypeScript, Tailwind CSS, shadcn/ui, Radix UI, Lucide React, React Hook Form
 
-- Next.js
-- React
-- TypeScript
-- Tailwind CSS
-- shadcn/ui
-- Radix UI
-- Lucide React
-- React Hook Form
+Backend and Storage: Supabase, Supabase Auth, Supabase Storage, PostgreSQL, Row Level Security
 
-### Backend and Storage
-
-- Supabase
-- Supabase Auth
-- Supabase Storage
-- PostgreSQL
-- Row Level Security
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18 or newer
-- npm
-- Supabase account
-
-### Installation
+## Installation
 
 ```bash
 git clone https://github.com/johnnnys3/Photographer-Portfolio-Website.git
@@ -81,24 +30,12 @@ cd Photographer-Portfolio-Website
 npm install
 ```
 
-### Environment Setup
-
-Create a `.env.local` file and add your Supabase credentials:
+Create a `.env.local` file with your Supabase credentials:
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
-
-### Run Locally
-
-```bash
-npm run dev
-```
-
-Open `http://localhost:3000` in your browser.
-
-## Supabase Setup
 
 Create the required `images` table in Supabase:
 
@@ -118,14 +55,7 @@ CREATE TABLE images (
 );
 ```
 
-Recommended production setup:
-
-- Enable Supabase Auth
-- Configure storage bucket permissions
-- Add Row Level Security policies
-- Set production environment variables in your hosting provider
-
-## Development Commands
+## Usage
 
 ```bash
 npm run dev      # Start development server
@@ -134,31 +64,22 @@ npm run start    # Start production server
 npm run lint     # Run linting
 ```
 
-## Deployment
+Open `http://localhost:3000` in your browser. Deployable on Vercel with production Supabase environment variables set.
 
-This project is suitable for deployment on Vercel.
+## Project Structure
 
-```bash
-npm run build
+```text
+.
+├── app/            # Next.js routes
+├── components/     # UI components
+├── lib/            # Supabase client and helpers
+└── README.md
 ```
 
-Production environment variables required:
+## Contributing
 
-```env
-NEXT_PUBLIC_SUPABASE_URL=your_production_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_production_supabase_anon_key
-```
-
-## Portfolio Value
-
-This project demonstrates frontend engineering, responsive UI design, authentication, image management, database integration, and production deployment using a modern React stack.
+Contributions are welcome. Fork the repository, create a feature branch, and open a pull request describing your changes.
 
 ## License
 
 This project is available for educational and portfolio purposes.
-
-## Contact
-
-**John Kessie**  
-GitHub: [johnnnys3](https://github.com/johnnnys3)  
-Email: johnkessie04@gmail.com

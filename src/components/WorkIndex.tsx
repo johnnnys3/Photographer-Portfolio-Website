@@ -38,30 +38,46 @@ const FALLBACK: DatabaseImage[] = FALLBACK_SEEDS.map((seed, i) => ({
 
 const mod = (n: number, m: number) => ((n % m) + m) % m;
 
-// Supabase titles are upload filenames, so clean them into something exhibitable.
-function displayTitle(raw: string | undefined, index: number) {
-  const cleaned = (raw || '')
-    .replace(/\.[a-z0-9]{2,4}$/i, '')
-    .replace(/[-_]?unsplash$/i, '')
-    .split(/[-_\s]+/)
-    // Drop the random id tokens photo services append.
-    .filter(
-      (token) =>
-        token.length > 0 &&
-        !/^[a-z0-9]{8,}$/i.test(token) &&
-        // Photo services append id fragments like "3tll" or "97hnjo".
-        !(/\d/.test(token) && /[a-z]/i.test(token))
-    )
-    .join(' ')
-    .trim();
+// Supabase titles are upload filenames or placeholders, so a title is only
+// used when it is distinctive. Otherwise the caption falls back to the
+// gallery the photographer filed the image under, numbered within it.
+function isUsableTitle(raw: string | undefined, seen: Map<string, number>) {
+  const t = (raw || '').trim();
+  if (t.length < 4) return false;
+  if (/unsplash|pexels/i.test(t)) return false;
+  if (/\.[a-z0-9]{2,4}$/i.test(t)) return false;
+  // Photo services append id fragments like "3TLl_97HNJo".
+  if (/[-_]/.test(t) && /\d/.test(t)) return false;
+  // A title reused across images is a placeholder, not a caption.
+  if ((seen.get(t.toLowerCase()) || 0) > 1) return false;
+  return true;
+}
 
-  if (cleaned.length < 3) return `Untitled ${String(index + 1).padStart(2, '0')}`;
-  return cleaned;
+function buildCaptions(items: DatabaseImage[]) {
+  const seen = new Map<string, number>();
+  items.forEach((i) => {
+    const k = (i.title || '').trim().toLowerCase();
+    seen.set(k, (seen.get(k) || 0) + 1);
+  });
+
+  const perGallery = new Map<string, number>();
+  return items.map((item) => {
+    if (isUsableTitle(item.title, seen)) return item.title.trim();
+    const gallery = (item.gallery || 'Archive').replace(/[-_]/g, ' ');
+    const label = gallery.charAt(0).toUpperCase() + gallery.slice(1);
+    const n = (perGallery.get(label) || 0) + 1;
+    perGallery.set(label, n);
+    return `${label} ${String(n).padStart(2, '0')}`;
+  });
 }
 
 export function WorkIndex({ images, onImageClick }: WorkIndexProps) {
-  const items = (images.length >= 6 ? images : FALLBACK).slice(0, 12);
+  const portfolio = images.filter(
+    (img) => (img.gallery || '').toLowerCase() !== 'about' && !(img.tags || []).includes('profile')
+  );
+  const items = (portfolio.length >= 6 ? portfolio : FALLBACK).slice(0, 12);
   const count = items.length;
+  const captions = buildCaptions(items);
 
   const [active, setActive] = useState(0);
   const [armed, setArmed] = useState(false);
@@ -227,14 +243,14 @@ export function WorkIndex({ images, onImageClick }: WorkIndexProps) {
               onBlur={() => setArmed(false)}
               aria-label={
                 i === active
-                  ? `Open ${displayTitle(item.title, i)}`
-                  : `Bring ${displayTitle(item.title, i)} into view`
+                  ? `Open ${captions[i]}`
+                  : `Bring ${captions[i]} into view`
               }
               className="absolute inset-0 z-10 h-full w-full cursor-pointer"
             />
             <img
               src={item.url}
-              alt={displayTitle(item.title, i)}
+              alt={captions[i]}
               draggable={false}
               loading={i < 4 ? 'eager' : 'lazy'}
               decoding="async"
@@ -298,7 +314,7 @@ export function WorkIndex({ images, onImageClick }: WorkIndexProps) {
             >
               <img
                 src={item.url}
-                alt={displayTitle(item.title, i)}
+                alt={captions[i]}
                 loading={i < 2 ? 'eager' : 'lazy'}
                 decoding="async"
                 onError={(e) => {
@@ -311,7 +327,7 @@ export function WorkIndex({ images, onImageClick }: WorkIndexProps) {
               />
               <span className="mt-3 flex items-baseline gap-4 text-[11px] uppercase tracking-[0.14em]">
                 <span className="tabular-nums opacity-35">{String(i + 1).padStart(2, '0')}/</span>
-                <span>{displayTitle(item.title, i)}</span>
+                <span>{captions[i]}</span>
               </span>
             </button>
           </li>

@@ -61,22 +61,22 @@ export function AboutPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-black pt-24 pb-16 px-4 sm:px-6 lg:px-8 w-full flex items-center justify-center">
+      <div className="min-h-screen bg-background pt-24 pb-16 px-4 sm:px-6 lg:px-8 w-full flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black dark:border-white mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-300">Loading content...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading content...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black pt-24 pb-16 px-4 sm:px-6 lg:px-8 w-full">
+    <div className="min-h-screen bg-background pt-24 pb-16 px-4 sm:px-6 lg:px-8 w-full">
       <div className="w-full">
         {/* Header */}
         <div className="text-center mb-16">
-          <h1 className="text-4xl sm:text-5xl mb-4 text-gray-900 dark:text-white">About Me</h1>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+          <h1 className="text-4xl sm:text-5xl mb-4 text-foreground">About Me</h1>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Passionate photographer dedicated to capturing the beauty of our world
           </p>
         </div>
@@ -95,10 +95,10 @@ export function AboutPage() {
 
           {/* Bio */}
           <div className="w-full md:w-1/2">
-            <h2 className="text-3xl mb-4 text-gray-900 dark:text-white">
+            <h2 className="text-3xl mb-4 text-foreground">
               {siteContent.bio?.content?.title || 'My Journey'}
             </h2>
-            <div className="space-y-4 text-gray-600 dark:text-gray-300 mb-6">
+            <div className="space-y-4 text-muted-foreground mb-6">
               {(siteContent.bio?.content?.paragraphs || []).map((paragraph: string, index: number) => (
                 <p key={index}>{paragraph}</p>
               ))}
@@ -108,7 +108,7 @@ export function AboutPage() {
             </div>
             <Link
               href="/contact"
-              className="bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black py-3 px-8 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+              className="bg-primary hover:opacity-90 text-primary-foreground py-3 px-8 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
             >
               Get In Touch
             </Link>
@@ -127,11 +127,11 @@ export function AboutPage() {
               return (
                 <div
                   key={index}
-                  className="text-center p-6 bg-gray-50 dark:bg-gray-800 rounded-lg hover:shadow-lg transition duration-300"
+                  className="text-center p-6 bg-secondary rounded-lg hover:shadow-lg transition duration-300"
                 >
-                  <Icon className="w-10 h-10 text-black dark:text-white mx-auto mb-3" />
-                  <div className="text-3xl text-gray-900 dark:text-white mb-2">{stat.value}</div>
-                  <div className="text-gray-600 dark:text-gray-300">{stat.label}</div>
+                  <Icon className="w-10 h-10 text-foreground mx-auto mb-3" />
+                  <div className="text-3xl text-foreground mb-2">{stat.value}</div>
+                  <div className="text-muted-foreground">{stat.label}</div>
                 </div>
               );
             })}
@@ -140,13 +140,13 @@ export function AboutPage() {
 
         {/* Services - Only show if services exist */}
         {siteContent.services?.content && siteContent.services.content.length > 0 && (
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-8 sm:p-12">
-            <h2 className="text-3xl mb-8 text-gray-900 dark:text-white text-center">Services</h2>
+          <div className="bg-secondary rounded-lg p-8 sm:p-12">
+            <h2 className="text-3xl mb-8 text-foreground text-center">Services</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {siteContent.services.content.map((service: any, index: number) => (
-                <div key={index} className="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-md">
-                  <h3 className="text-xl mb-3 text-gray-900 dark:text-white">{service.title}</h3>
-                  <p className="text-gray-600 dark:text-gray-300">{service.description}</p>
+                <div key={index} className="bg-card p-6 rounded-lg shadow-md">
+                  <h3 className="text-xl mb-3 text-foreground">{service.title}</h3>
+                  <p className="text-muted-foreground">{service.description}</p>
                 </div>
               ))}
             </div>

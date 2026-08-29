@@ -1,221 +1,223 @@
-/**
- * MIGRATION NOTE:
- * Source: src/components/Navigation.tsx
- * Destination: src/components/Navigation.tsx (updated for Next.js)
- * This component needs 'use client' because it uses useState, usePathname, and browser-only features.
- * The navigation logic is preserved exactly from the original implementation.
- * Any deviation is unintentional and should be flagged.
- */
-
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Menu, X, ArrowLeft, Sun, Moon } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { X } from '@phosphor-icons/react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
+import { PHOTOGRAPHER } from './siteIdentity';
 
 interface NavigationProps {
   currentPage?: string;
-  onNavigate?: (page: string) => void;
+  /** Home overlays the hero photograph; inner pages need their own ground. */
+  overlay?: boolean;
 }
 
-export function Navigation({ currentPage }: NavigationProps) {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+const NAV_LINKS = [
+  { label: 'Story', href: '/about' },
+  { label: 'Work', href: '/galleries' },
+  { label: 'Message', href: '/contact' },
+];
+
+const SOCIAL_LINKS = [
+  { label: 'Instagram', href: '#' },
+  { label: 'TikTok', href: '#' },
+  { label: 'YouTube', href: '#' },
+];
+
+const EASE = 'cubic-bezier(0.76, 0, 0.24, 1)';
+
+export function Navigation({ overlay = false }: NavigationProps) {
+  const [open, setOpen] = useState(false);
   const pathname = usePathname();
-  const router = useRouter();
+
+  // Lock the page behind the drawer while it is open.
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [open]);
 
   useEffect(() => {
-    // Check for saved theme preference or system preference
-    const savedTheme = localStorage.getItem('theme');
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const shouldBeDark = savedTheme === 'dark' || (!savedTheme && systemPrefersDark);
-    
-    setDarkMode(shouldBeDark);
-    // Apply theme to document root
-    if (shouldBeDark) {
-      document.documentElement.classList.add('dark');
-      document.documentElement.setAttribute('data-theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      document.documentElement.setAttribute('data-theme', 'light');
-    }
-  }, []);
+    setOpen(false);
+  }, [pathname]);
 
-  const toggleDarkMode = () => {
-    const newDarkMode = !darkMode;
-    setDarkMode(newDarkMode);
-    
-    if (newDarkMode) {
-      document.documentElement.classList.add('dark');
-      document.documentElement.setAttribute('data-theme', 'dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      document.documentElement.setAttribute('data-theme', 'light');
-      localStorage.setItem('theme', 'light');
-    }
-  };
-
-  const navLinks = [
-    { id: 'about', label: 'About', href: '/about' },
-    { id: 'portfolio', label: 'Portfolio', href: '/galleries' },
-    { id: 'contact', label: 'Contact', href: '/contact' },
-  ];
-
-  const getCurrentPage = () => {
-    if (pathname === '/') return 'home';
-    if (pathname === '/galleries') return 'portfolio';
-    if (pathname === '/about') return 'about';
-    if (pathname === '/contact') return 'contact';
-    return 'home';
-  };
-
-  const currentPg = currentPage || getCurrentPage();
+  const tone = overlay ? 'text-[#efeee9]' : 'text-foreground';
+  const barTone = overlay ? 'bg-[#efeee9]' : 'bg-foreground';
 
   return (
-    <nav className="bg-white dark:bg-black fixed top-0 left-0 right-0 z-50 w-full border-b border-gray-200 dark:border-gray-800">
-      <div className="w-full px-6 lg:px-12">
-        <div className="flex justify-between items-center h-20 w-full">
-          {/* Left - Back Button and Abstract Logo */}
-          <div className="flex items-center justify-center h-full gap-4">
-            <button
-              onClick={() => router.back()}
-              className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition duration-300"
-              aria-label="Go back"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <Link 
-              href="/"
-              className="cursor-pointer"
-            >
-              <div className="w-10 h-10 bg-black dark:bg-white rounded-sm transform rotate-45"></div>
-            </Link>
-          </div>
+    <>
+      <header
+        className={`absolute inset-x-0 top-0 z-30 flex items-start justify-between px-6 pt-6 sm:px-10 sm:pt-8 ${tone}`}
+      >
+        <Link
+          href="/"
+          className="anim-fade-up text-lg tracking-wide"
+          style={{ animationDelay: '800ms' }}
+        >
+          {PHOTOGRAPHER.name.split(' ')[0]}
+        </Link>
 
-          {/* Center - Navigation Links */}
-          <div className="hidden md:flex items-center justify-center h-full flex-1 gap-8">
-            {navLinks.map((link) => (
+        <div className="flex items-start gap-16 lg:gap-24">
+          <span
+            className="anim-fade-up hidden text-sm sm:block"
+            style={{ animationDelay: '900ms' }}
+          >
+            {new Date().getFullYear()}
+          </span>
+
+          <nav className="hidden flex-col gap-0.5 text-sm sm:flex">
+            {NAV_LINKS.map((link, i) => (
               <Link
-                key={link.id}
+                key={link.label}
                 href={link.href}
-                className={`font-medium transition duration-300 hover:text-gray-600 dark:hover:text-gray-400 ${
-                  currentPg === link.id ? 'text-black dark:text-white' : 'text-gray-500 dark:text-gray-500'
-                }`}
+                className="anim-fade-up transition-opacity duration-300 hover:opacity-60"
+                style={{ animationDelay: `${1000 + i * 80}ms` }}
               >
                 {link.label}
               </Link>
             ))}
-          </div>
+          </nav>
 
-          {/* Right - Profile Icon, Dark Mode Toggle and Mobile Menu */}
-          <div className="flex items-center justify-end h-full gap-4">
-            <div className="hidden md:block">
-              <div className="w-10 h-10 rounded-full border-2 border-gray-400 dark:border-gray-600 bg-gray-100 dark:bg-gray-800 cursor-pointer hover:border-gray-600 dark:hover:border-gray-400 transition duration-300 flex items-center justify-center">
-                <span className="text-gray-600 dark:text-gray-300 font-bold">C</span>
-              </div>
-            </div>
-            <button
-              onClick={toggleDarkMode}
-              className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition duration-300"
-              aria-label="Toggle dark mode"
-            >
-              {darkMode ? (
-                <Sun className="w-5 h-5" />
-              ) : (
-                <Moon className="w-5 h-5" />
-              )}
-            </button>
-            <button
-              className="md:hidden p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? (
-                <X className="w-6 h-6" />
-              ) : (
-                <Menu className="w-6 h-6" />
-              )}
-            </button>
+          <div className="hidden flex-col gap-0.5 text-sm sm:flex">
+            {SOCIAL_LINKS.map((link, i) => (
+              <a
+                key={link.label}
+                href={link.href}
+                className="anim-fade-up transition-opacity duration-300 hover:opacity-60"
+                style={{ animationDelay: `${1150 + i * 80}ms` }}
+              >
+                {link.label}
+              </a>
+            ))}
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Mobile Menu - Full navigation overlay */}
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 bg-white dark:bg-black z-50">
-          <div className="flex flex-col h-full">
-            {/* Mobile Menu Header */}
-            <div className="flex justify-between items-center h-20 px-6 lg:px-12 border-b border-gray-200 dark:border-gray-800">
-              <div className="flex items-center">
-                <Link 
-                  href="/"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="cursor-pointer"
-                >
-                  <div className="w-10 h-10 bg-black dark:bg-white rounded-sm transform rotate-45"></div>
-                </Link>
-              </div>
-              <button
-                className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            
-            {/* Mobile Navigation Links */}
-            <div className="flex-1 flex flex-col justify-center items-center space-y-8 px-4">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.id}
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`text-2xl font-bold transition duration-300 ${
-                    currentPg === link.id
-                      ? 'text-black dark:text-white'
-                      : 'text-gray-500 dark:text-gray-500 hover:text-black dark:hover:text-white'
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
-              
-              {/* Profile Icon */}
-              <div className="w-12 h-12 rounded-full border-2 border-gray-400 dark:border-gray-600 bg-gray-100 dark:bg-gray-800 cursor-pointer hover:border-gray-600 dark:hover:border-gray-400 transition duration-300 flex items-center justify-center">
-                <span className="text-gray-600 dark:text-gray-300 font-bold text-lg">C</span>
-              </div>
-              
-              {/* Dark Mode Toggle */}
-              <button
-                onClick={toggleDarkMode}
-                className="p-3 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition duration-300 flex items-center justify-center"
-                aria-label="Toggle dark mode"
-              >
-                {darkMode ? (
-                  <Sun className="w-6 h-6" />
-                ) : (
-                  <Moon className="w-6 h-6" />
-                )}
-              </button>
-              
-              {/* Back Button (only when not on homepage) */}
-              {pathname !== '/' && (
-                <button
-                  onClick={() => {
-                    router.back();
-                    setMobileMenuOpen(false);
-                  }}
-                  className="p-3 rounded-md text-gray-500 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition duration-300 flex items-center justify-center"
-                  aria-label="Go back"
-                >
-                  <ArrowLeft className="w-6 h-6" />
-                </button>
-              )}
-            </div>
-          </div>
+      {/* Hamburger morphs into the close mark. */}
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-label={open ? 'Close menu' : 'Open menu'}
+        className="anim-fade-up absolute right-5 top-5 z-50 grid h-10 w-10 place-items-center sm:hidden"
+        style={{ animationDelay: '900ms' }}
+      >
+        <span className="relative block h-4 w-6">
+          <span
+            className={`absolute left-0 block h-px w-6 ${open ? 'bg-[#efeee9]' : barTone}`}
+            style={{
+              top: open ? '50%' : '0',
+              transform: open ? 'translateY(-50%) rotate(45deg)' : 'none',
+              transition: `all 500ms ${EASE}`,
+            }}
+          />
+          <span
+            className={`absolute left-0 top-1/2 block h-px w-6 -translate-y-1/2 ${barTone}`}
+            style={{ opacity: open ? 0 : 1, transition: 'opacity 300ms linear' }}
+          />
+          <span
+            className={`absolute left-0 block h-px w-6 ${open ? 'bg-[#efeee9]' : barTone}`}
+            style={{
+              bottom: open ? 'auto' : '0',
+              top: open ? '50%' : 'auto',
+              transform: open ? 'translateY(-50%) rotate(-45deg)' : 'none',
+              transition: `all 500ms ${EASE}`,
+            }}
+          />
+        </span>
+      </button>
+
+      {/* Backdrop. */}
+      <div
+        onClick={() => setOpen(false)}
+        className={`fixed inset-0 z-40 bg-black/40 backdrop-blur-sm transition-opacity duration-500 sm:hidden ${
+          open ? 'opacity-100' : 'pointer-events-none opacity-0'
+        }`}
+      />
+
+      {/* Right slide-in panel. */}
+      <aside
+        className={`fixed right-0 top-0 z-40 h-full w-[80%] max-w-sm bg-[#141414] px-8 py-10 text-[#efeee9] sm:hidden ${
+          open ? 'translate-x-0' : 'translate-x-full'
+        }`}
+        style={{ transition: `transform 600ms ${EASE}` }}
+        aria-hidden={!open}
+      >
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          aria-label="Close menu"
+          className="absolute right-6 top-6"
+          style={{
+            transform: open ? 'rotate(0deg)' : 'rotate(90deg)',
+            opacity: open ? 1 : 0,
+            transition: 'transform 500ms ease, opacity 300ms ease',
+            transitionDelay: open ? '300ms' : '0ms',
+          }}
+        >
+          <X size={26} weight="light" />
+        </button>
+
+        <p
+          className="text-xs uppercase tracking-[0.2em] text-[#efeee9]/50"
+          style={{
+            opacity: open ? 1 : 0,
+            transform: open ? 'translateY(0)' : 'translateY(1rem)',
+            transition: 'all 500ms ease',
+            transitionDelay: open ? '250ms' : '0ms',
+          }}
+        >
+          Site Index
+        </p>
+        <nav className="mt-6 flex flex-col gap-2">
+          {NAV_LINKS.map((link, i) => (
+            <Link
+              key={link.label}
+              href={link.href}
+              className="text-4xl tracking-[-0.03em]"
+              style={{
+                opacity: open ? 1 : 0,
+                transform: open ? 'translateY(0)' : 'translateY(1.5rem)',
+                transition: 'all 500ms ease',
+                transitionDelay: open ? `${300 + i * 80}ms` : '0ms',
+              }}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+
+        <p
+          className="mt-14 text-xs uppercase tracking-[0.2em] text-[#efeee9]/50"
+          style={{
+            opacity: open ? 1 : 0,
+            transform: open ? 'translateY(0)' : 'translateY(1rem)',
+            transition: 'all 500ms ease',
+            transitionDelay: open ? '500ms' : '0ms',
+          }}
+        >
+          Find Me
+        </p>
+        <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+          {SOCIAL_LINKS.map((link, i) => (
+            <a
+              key={link.label}
+              href={link.href}
+              style={{
+                opacity: open ? 1 : 0,
+                transform: open ? 'translateY(0)' : 'translateY(1rem)',
+                transition: 'all 500ms ease',
+                transitionDelay: open ? `${550 + i * 60}ms` : '0ms',
+              }}
+            >
+              {link.label}
+            </a>
+          ))}
         </div>
-      )}
-    </nav>
+      </aside>
+    </>
   );
 }

@@ -6,12 +6,11 @@
  * The GalleryPage component logic is preserved exactly from the original implementation.
  * Any deviation is unintentional and should be flagged.
  */
-
 'use client';
 
 import { useState } from 'react';
 import { Navigation } from '@/components/Navigation';
-import { GalleryPage } from '@/components/GalleryPage';
+import { WorkIndex } from '@/components/WorkIndex';
 import { Lightbox } from '@/components/Lightbox';
 import { useData } from '@/contexts/DataContext';
 import { PageErrorBoundary, ComponentErrorBoundary } from '@/components/ErrorBoundary';
@@ -49,7 +48,7 @@ export default function Galleries() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black w-full">
+    <div className="min-h-[100dvh] bg-background w-full overflow-hidden">
       {/* Navigation - show on all pages except when viewing single image in lightbox */}
       <ComponentErrorBoundary componentName="Navigation">
         {!selectedImage && <Navigation currentPage="galleries" />}
@@ -57,7 +56,7 @@ export default function Galleries() {
 
       {/* Page Content */}
       <PageErrorBoundary context="galleries">
-        <GalleryPage onImageClick={handleImageClick} />
+        <WorkIndex images={images} onImageClick={handleImageClick} />
       </PageErrorBoundary>
 
       {/* Lightbox Modal */}

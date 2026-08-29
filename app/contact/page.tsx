@@ -6,7 +6,6 @@
  * The ContactPage component logic is preserved exactly from the original implementation.
  * Any deviation is unintentional and should be flagged.
  */
-
 'use client';
 
 import { Navigation } from '@/components/Navigation';
@@ -15,7 +14,7 @@ import { PageErrorBoundary, ComponentErrorBoundary } from '@/components/ErrorBou
 
 export default function Contact() {
   return (
-    <div className="min-h-screen bg-white dark:bg-black w-full">
+    <div className="min-h-screen bg-background w-full">
       {/* Navigation */}
       <ComponentErrorBoundary componentName="Navigation">
         <Navigation currentPage="contact" />

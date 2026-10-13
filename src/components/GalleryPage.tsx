@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import gsap from 'gsap';
 import { useData } from '../contexts/DataContext';
 
 interface GalleryPageProps {
@@ -10,6 +11,8 @@ export function GalleryPage({ onImageClick }: GalleryPageProps) {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
+  const headerRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
 
   // Filter images based on selected category
   const filteredImages = selectedCategory === 'all'
@@ -34,13 +37,39 @@ export function GalleryPage({ onImageClick }: GalleryPageProps) {
     setCurrentPage(1);
   }, [selectedCategory]);
 
+  // Header settle-in on mount, matching the homepage hero
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        headerRef.current,
+        { y: 30, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.7, ease: 'power3.out' }
+      );
+    });
+    return () => ctx.revert();
+  }, []);
+
+  // Grid items stagger in whenever the filtered set changes
+  useEffect(() => {
+    if (loading || paginatedImages.length === 0) return;
+    const ctx = gsap.context(() => {
+      const items = gsap.utils.toArray<HTMLElement>('.gallery-item', gridRef.current);
+      gsap.fromTo(
+        items,
+        { y: 20, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.5, ease: 'power2.out', stagger: 0.05 }
+      );
+    }, gridRef);
+    return () => ctx.revert();
+  }, [loading, selectedCategory, currentPage]);
+
   return (
     <div className="min-h-screen bg-white dark:bg-black pt-24 pb-16 px-4 sm:px-6 lg:px-8 w-full">
       <div className="w-full">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl sm:text-5xl mb-4 text-gray-900 dark:text-white">Gallery</h1>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+        <div ref={headerRef} className="mb-12 border-b border-gray-200 dark:border-gray-800 pb-8">
+          <h1 className="text-6xl sm:text-8xl lg:text-9xl font-black uppercase tracking-tighter leading-[0.9] text-gray-900 dark:text-white mb-4">Work</h1>
+          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl">
             Explore my collection of photography across various categories
           </p>
         </div>
@@ -53,13 +82,13 @@ export function GalleryPage({ onImageClick }: GalleryPageProps) {
             ))}
           </div>
         ) : (
-          <div className="flex flex-wrap justify-center gap-3 mb-12">
+          <div className="flex flex-wrap gap-2 mb-12 border-b border-gray-200 dark:border-gray-800 pb-8">
             <button
               onClick={() => setSelectedCategory('all')}
-              className={`px-4 py-2 rounded-full transition duration-300 ease-in-out ${
+              className={`px-4 py-2 text-xs font-bold uppercase tracking-wider border transition duration-300 ease-in-out ${
                 selectedCategory === 'all'
-                  ? 'bg-black text-white shadow-lg'
-                  : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                  ? 'bg-black text-white dark:bg-white dark:text-black border-black dark:border-white'
+                  : 'border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-black dark:hover:border-white'
               }`}
             >
               All ({images.length})
@@ -68,10 +97,10 @@ export function GalleryPage({ onImageClick }: GalleryPageProps) {
               <button
                 key={gallery.id}
                 onClick={() => setSelectedCategory(gallery.id)}
-                className={`px-4 py-2 rounded-full transition duration-300 ease-in-out ${
+                className={`px-4 py-2 text-xs font-bold uppercase tracking-wider border transition duration-300 ease-in-out ${
                   selectedCategory === gallery.id
-                    ? 'bg-black text-white shadow-lg'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    ? 'bg-black text-white dark:bg-white dark:text-black border-black dark:border-white'
+                    : 'border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-black dark:hover:border-white'
                 }`}
               >
                 {gallery.name} ({gallery.count})
@@ -88,22 +117,26 @@ export function GalleryPage({ onImageClick }: GalleryPageProps) {
             ))}
           </div>
         ) : paginatedImages.length > 0 ? (
-          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 space-y-4">
+          <div ref={gridRef} className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 space-y-4">
             {paginatedImages.map((image) => (
               <div
                 key={image.id}
                 onClick={() => onImageClick(image.id)}
-                className="break-inside-avoid mb-4 cursor-pointer transition duration-300 ease-in-out transform hover:scale-105 group"
+                data-cursor="View"
+                className="gallery-item break-inside-avoid mb-4 cursor-pointer transition duration-300 ease-in-out transform hover:scale-105 group"
               >
-                <div className="relative overflow-hidden rounded-lg">
+                <div className="relative overflow-hidden border border-gray-200 dark:border-gray-800">
                   <img
                     src={image.url}
                     alt={image.title}
-                    className="w-full object-cover"
+                    className="w-full object-cover transition duration-500 ease-out group-hover:scale-105"
                     loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition duration-300 ease-in-out flex items-end justify-center z-10">
-                    <h3 className="text-white text-sm font-semibold p-2">{image.title}</h3>
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-colors duration-300" />
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <h3 className="text-white font-bold uppercase tracking-tight opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                      {image.title}
+                    </h3>
                   </div>
                 </div>
               </div>
@@ -141,20 +174,20 @@ export function GalleryPage({ onImageClick }: GalleryPageProps) {
               <button
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1 || totalPages === 0}
-                className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-300"
+                className="px-4 py-2 text-xs font-bold uppercase tracking-wider border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-black dark:hover:border-white disabled:opacity-40 disabled:cursor-not-allowed transition duration-300"
               >
                 Previous
               </button>
-              
+
               <div className="flex gap-2">
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                   <button
                     key={page}
                     onClick={() => setCurrentPage(page)}
-                    className={`px-4 py-2 rounded-lg transition duration-300 ${
+                    className={`w-9 h-9 text-xs font-bold border transition duration-300 ${
                       currentPage === page
-                        ? 'bg-black text-white'
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                        ? 'bg-black text-white dark:bg-white dark:text-black border-black dark:border-white'
+                        : 'border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-black dark:hover:border-white'
                     }`}
                   >
                     {page}
@@ -165,7 +198,7 @@ export function GalleryPage({ onImageClick }: GalleryPageProps) {
               <button
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages || totalPages === 0}
-                className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-300"
+                className="px-4 py-2 text-xs font-bold uppercase tracking-wider border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-black dark:hover:border-white disabled:opacity-40 disabled:cursor-not-allowed transition duration-300"
               >
                 Next
               </button>

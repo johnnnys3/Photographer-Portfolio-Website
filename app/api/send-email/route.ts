@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
+import { getSite } from '@/content/data';
+import { getDb } from '@/lib/supabase/server';
 
 // Environment variables for email configuration
 const EMAIL_HOST = process.env.EMAIL_HOST;
@@ -43,6 +45,7 @@ function escapeHtml(value: string): string {
 }
 
 export async function POST(request: NextRequest) {
+  let stored = false; // saved to Supabase; lets a mail-server failure still count as received
   try {
     const body = await request.json();
     const { name, email, subject, message } = body;
@@ -91,16 +94,39 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Save the enquiry first so it is never lost if the mail server is down. The table's
+    // CHECK constraints and RLS (insert-only for anon) are the second line of defence.
+    const optional = (v: unknown, max: number) => (typeof v === 'string' ? sanitizeHeader(v, max) || null : null);
+    const db = getDb();
+    if (db) {
+      const { error } = await db.from('enquiries').insert({
+        name: safeName,
+        email: safeEmail,
+        phone: optional(body.phone, 40),
+        need: optional(body.need, 60),
+        budget: optional(body.budget, 60),
+        wanted_date: optional(body.wantedDate, 40),
+        message: safeMessage || null,
+      });
+      if (error) console.error('Failed to store enquiry:', error.message);
+      else stored = true;
+    }
+
     const htmlName = escapeHtml(safeName);
     const htmlSubject = escapeHtml(safeSubject);
     const htmlEmail = escapeHtml(safeEmail);
     const htmlMessage = escapeHtml(safeMessage);
 
+    // Enquiries go to the Studio email saved in the admin; the server setting is the fallback
+    // (also used while the admin still holds the unedited placeholder address).
+    const saved = (await getSite()).email.trim();
+    const to = emailRegex.test(saved) && !saved.endsWith('@example.com') ? saved : CONTACT_EMAIL;
+
     // Check if email configuration is available
     if (!EMAIL_HOST || !EMAIL_PORT || !EMAIL_USER || !EMAIL_PASS) {
       // Fallback: log the message for development
       console.log('Email would be sent with following details:', {
-        to: CONTACT_EMAIL,
+        to,
         from: EMAIL_USER,
         subject: `Contact Form: ${safeSubject}`,
         text: `Name: ${safeName}\nEmail: ${safeEmail}\n\nMessage:\n${safeMessage}`,
@@ -141,7 +167,7 @@ export async function POST(request: NextRequest) {
     // Email content
     const mailOptions = {
       from: EMAIL_USER,
-      to: CONTACT_EMAIL,
+      to,
       subject: `Contact Form: ${safeSubject}`,
       replyTo: safeEmail,
       text: `Name: ${safeName}\nEmail: ${safeEmail}\n\nMessage:\n${safeMessage}`,
@@ -201,7 +227,12 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Error sending email:', error);
-    
+
+    // The enquiry is safe in the database; only the notification email failed.
+    if (stored) {
+      return NextResponse.json({ message: 'Message received.', stored: true }, { status: 200 });
+    }
+
     return NextResponse.json(
       { error: 'Failed to send message. Please try again later.' },
       { status: 500 }

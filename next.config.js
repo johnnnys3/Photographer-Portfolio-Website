@@ -8,6 +8,9 @@
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Lets a verification build (NEXT_DIST_DIR=.next-verify) run beside `next dev` without clobbering it.
+  distDir: process.env.NEXT_DIST_DIR || '.next',
+
   // Production optimizations
   compress: true,
   poweredByHeader: false,
@@ -51,8 +54,14 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'jblkonraedwcjbllpqap.supabase.co',
       },
+      // Placeholder photos until real CMS assets exist
+      { protocol: 'https', hostname: 'picsum.photos' },
+      { protocol: 'https', hostname: 'fastly.picsum.photos' },
     ],
-    formats: ['image/webp', 'image/avif'],
+    // WebP only: AVIF takes far longer to encode on the first visit. A year-long cache means each
+    // resized photo is made once, which also keeps Supabase egress and Vercel image quota low.
+    formats: ['image/webp'],
+    minimumCacheTTL: 31536000,
   }
 };
 

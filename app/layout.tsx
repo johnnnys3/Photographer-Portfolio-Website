@@ -1,6 +1,6 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
-import { Inter_Tight } from 'next/font/google';
+import { Bebas_Neue } from 'next/font/google';
 import { getNavLinks, getSite } from '@/content/data';
 import { SiteProvider } from '@/components/SiteProvider';
 import { Header } from '@/components/layout/Header';
@@ -10,7 +10,7 @@ import { SiteFooter } from '@/components/layout/SiteFooter';
 export const revalidate = 60;
 
 // One typeface for the whole site, the same one as the name in the header.
-const sans = Inter_Tight({ subsets: ['latin'], weight: ['400', '500', '700'], variable: '--nf-sans', display: 'swap' });
+const sans = Bebas_Neue({ subsets: ['latin'], weight: '400', variable: '--nf-sans', display: 'swap' });
 
 export async function generateMetadata(): Promise<Metadata> {
   const site = await getSite();

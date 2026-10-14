@@ -19,16 +19,16 @@ export function Header({ links }: { links: { href: string; label: string }[] }) 
   return (
     <header data-site-chrome className="absolute inset-x-0 top-0 z-50 flex items-start justify-between gap-4 px-(--edge) pt-6 md:pt-8">
       <div>
-        <Link href="/" className="block whitespace-nowrap text-[16px] font-bold uppercase leading-none tracking-[-0.01em] md:text-[22px]">
+        <Link href="/" className="block whitespace-nowrap text-[22px] leading-none tracking-[0.04em] md:text-[32px]">
           {site.name.trim()}
         </Link>
-        <p className="mt-2 text-[12px] text-muted tabular-nums md:mt-3 md:text-[13px]">
+        <p className="mt-2 text-[14px] text-muted tabular-nums md:mt-3 md:text-[16px]">
           <LiveClock />
         </p>
       </div>
 
       <nav aria-label="Primary">
-        <ul className="flex flex-col gap-1 pt-1 text-[14px] max-md:text-right md:gap-1.5 md:pt-1.5 md:text-[15px]">
+        <ul className="flex flex-col gap-1 pt-1 text-[17px] max-md:text-right md:gap-1.5 md:pt-1.5 md:text-[20px]">
           {links.map(({ href, label }) => (
             <li key={href}>
               <Link

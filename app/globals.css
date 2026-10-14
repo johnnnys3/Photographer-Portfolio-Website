@@ -36,10 +36,10 @@
 
 :root {
   --overlay: rgb(244 240 232 / 0.95);
-  --top-h: 184px; /* where page content starts below the (scrolling) editorial header */
-  --text-xs: 12px;
-  --text-sm: 14px;
-  --text-md: 16px;
+  --top-h: 208px; /* where page content starts below the (scrolling) editorial header; must clear the stacked nav */
+  --text-xs: 14px; /* Bebas Neue is condensed, so every size runs a little larger */
+  --text-sm: 17px;
+  --text-md: 18px;
   --text-lg: 28px;
   --lh-body: 1.6;
   --edge: clamp(20px, 2.5vw, 40px);
@@ -65,7 +65,9 @@ body {
   background: var(--color-bg);
   color: var(--color-text);
   font: 400 var(--text-sm) / var(--lh-body) var(--font-sans);
-  -webkit-font-smoothing: antialiased;}
+  -webkit-font-smoothing: antialiased;
+  font-synthesis: none; /* Bebas Neue has a single weight: never fake a bold */
+}
 
 :focus-visible {
   outline: 1px solid var(--color-text);
@@ -226,7 +228,7 @@ body {
 
 @media (min-width: 768px) {
   :root {
-    --top-h: 200px;
+    --top-h: 248px;
   }
 }
 

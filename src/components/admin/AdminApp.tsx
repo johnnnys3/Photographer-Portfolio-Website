@@ -117,7 +117,7 @@ export function AdminApp() {
     setBusy(true);
     setError('');
     const { error } = await db.auth.signInWithPassword(form);
-    if (error) setError('Email or password is incorrect.');
+    if (error) setError(error.code === 'invalid_credentials' ? 'Email or password is incorrect.' : error.message);
     setBusy(false);
   };
 

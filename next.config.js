@@ -6,6 +6,9 @@
  * Any deviation is unintentional and should be flagged.
  */
 
+// Derived from the env var so the CSP and image host follow whichever Supabase project is configured.
+const supabaseHost = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://missing.supabase.co').host;
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Lets a verification build (NEXT_DIST_DIR=.next-verify) run beside `next dev` without clobbering it.
@@ -31,7 +34,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://jblkonraedwcjbllpqap.supabase.co wss://jblkonraedwcjbllpqap.supabase.co;"
+            value: `default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://${supabaseHost} wss://${supabaseHost};`
           }
         ]
       }
@@ -52,7 +55,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'jblkonraedwcjbllpqap.supabase.co',
+        hostname: supabaseHost,
       },
       // Placeholder photos until real CMS assets exist
       { protocol: 'https', hostname: 'picsum.photos' },

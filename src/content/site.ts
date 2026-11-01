@@ -1,12 +1,4 @@
-import type { Category, Img } from './types';
-
-/** Placeholder photo. Swap for CMS assets; picsum seeds keep each frame stable. */
-export const photo = (seed: string, width: number, height: number, alt: string): Img => ({
-  src: `https://picsum.photos/seed/${seed}/${width}/${height}`,
-  width,
-  height,
-  alt,
-});
+import type { Category } from './types';
 
 // PLACEHOLDER URL: set NEXT_PUBLIC_SITE_URL (or the address in Admin → Site-wide).
 export const site = { url: process.env.NEXT_PUBLIC_SITE_URL ?? 'https://example.com' };

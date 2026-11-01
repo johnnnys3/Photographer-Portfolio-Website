@@ -1,12 +1,11 @@
 /**
- * Content loader. Reads projects, photos and site settings from Supabase (60s ISR cache) and
- * falls back to the typed seed content when the database is unreachable, not configured, or has
- * no published projects yet. Server-only: import from server components and route handlers.
+ * Content loader. Reads projects, photos and site settings from Supabase (60s ISR cache). With no
+ * database or no published projects the site shows none; page text falls back to the admin's
+ * default wording. Server-only: import from server components and route handlers.
  */
 import { cache } from 'react';
 import { getDb } from '@/lib/supabase/server';
 import { PAGE_BY_KEY, resolvePage, rowName, type PageKey, type PageValues, type Vars } from './cms';
-import { projects as seedProjects } from './projects';
 import { site as seedSite } from './site';
 import type { CategorySlug, GalleryImage, Img, Project, SiteSettings } from './types';
 
@@ -111,11 +110,8 @@ async function fetchProjects(): Promise<Project[] | null> {
   }
 }
 
-/** Published projects, ordered. Seed projects until the first real project is published. */
-export const getProjects = cache(async (): Promise<Project[]> => {
-  const live = await fetchProjects();
-  return live && live.length ? live : seedProjects;
-});
+/** Published projects, ordered. Only what is in the database: no built-in demo projects. */
+export const getProjects = cache(async (): Promise<Project[]> => (await fetchProjects()) ?? []);
 
 export const getProject = async (slug: string) => (await getProjects()).find((p) => p.slug === slug);
 

@@ -57,9 +57,6 @@ const nextConfig = {
         protocol: 'https',
         hostname: supabaseHost,
       },
-      // Placeholder photos until real CMS assets exist
-      { protocol: 'https', hostname: 'picsum.photos' },
-      { protocol: 'https', hostname: 'fastly.picsum.photos' },
     ],
     // WebP only: AVIF takes far longer to encode on the first visit. A year-long cache means each
     // resized photo is made once, which also keeps Supabase egress and Vercel image quota low.

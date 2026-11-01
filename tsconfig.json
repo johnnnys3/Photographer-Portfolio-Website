@@ -40,19 +40,21 @@
     ]
   },
   "include": [
-    "src",
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "src/**/*.d.ts",
+    ".next-verify/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    ".next/types/**/*.ts",
     "app",
+    "app/**/*.d.ts",
     "app/**/*.ts",
     "app/**/*.tsx",
-    "app/**/*.d.ts",
+    "src",
+    "src/**/*.d.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx",
     "types",
-    "types/**/*.ts",
     "types/**/*.d.ts",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    "types/**/*.ts",
+    ".next-quiet/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

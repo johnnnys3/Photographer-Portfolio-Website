@@ -9,7 +9,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Menu, X, ArrowLeft, Sun, Moon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -24,6 +24,23 @@ export function Navigation({ currentPage }: NavigationProps) {
   const [darkMode, setDarkMode] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const logoFillRef = useRef<HTMLDivElement>(null);
+
+  // Logo doubles as a scroll meter: inverted fill rises with page progress
+  useEffect(() => {
+    const update = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = max > 0 ? Math.min(window.scrollY / max, 1) : 0;
+      if (logoFillRef.current) logoFillRef.current.style.height = `${progress * 100}%`;
+    };
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => {
+      window.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
+  }, [pathname]);
 
   useEffect(() => {
     // Check for saved theme preference or system preference
@@ -59,7 +76,7 @@ export function Navigation({ currentPage }: NavigationProps) {
 
   const navLinks = [
     { id: 'about', label: 'About', href: '/about' },
-    { id: 'portfolio', label: 'Portfolio', href: '/galleries' },
+    { id: 'portfolio', label: 'Work', href: '/galleries' },
     { id: 'contact', label: 'Contact', href: '/contact' },
   ];
 
@@ -86,11 +103,13 @@ export function Navigation({ currentPage }: NavigationProps) {
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
-            <Link 
+            <Link
               href="/"
               className="cursor-pointer"
             >
-              <div className="w-10 h-10 bg-black dark:bg-white rounded-sm transform rotate-45"></div>
+              <div className="relative w-10 h-10 bg-black dark:bg-white overflow-hidden">
+                <div ref={logoFillRef} className="absolute bottom-0 left-0 w-full h-0 bg-[#FE2F00]" />
+              </div>
             </Link>
           </div>
 
@@ -100,7 +119,7 @@ export function Navigation({ currentPage }: NavigationProps) {
               <Link
                 key={link.id}
                 href={link.href}
-                className={`font-medium transition duration-300 hover:text-gray-600 dark:hover:text-gray-400 ${
+                className={`text-sm font-bold uppercase tracking-wider transition duration-300 hover:text-gray-600 dark:hover:text-gray-400 ${
                   currentPg === link.id ? 'text-black dark:text-white' : 'text-gray-500 dark:text-gray-500'
                 }`}
               >
@@ -112,7 +131,7 @@ export function Navigation({ currentPage }: NavigationProps) {
           {/* Right - Profile Icon, Dark Mode Toggle and Mobile Menu */}
           <div className="flex items-center justify-end h-full gap-4">
             <div className="hidden md:block">
-              <div className="w-10 h-10 rounded-full border-2 border-gray-400 dark:border-gray-600 bg-gray-100 dark:bg-gray-800 cursor-pointer hover:border-gray-600 dark:hover:border-gray-400 transition duration-300 flex items-center justify-center">
+              <div className="w-10 h-10 border-2 border-gray-400 dark:border-gray-600 bg-gray-100 dark:bg-gray-800 cursor-pointer hover:border-gray-600 dark:hover:border-gray-400 transition duration-300 flex items-center justify-center">
                 <span className="text-gray-600 dark:text-gray-300 font-bold">C</span>
               </div>
             </div>
@@ -148,12 +167,12 @@ export function Navigation({ currentPage }: NavigationProps) {
             {/* Mobile Menu Header */}
             <div className="flex justify-between items-center h-20 px-6 lg:px-12 border-b border-gray-200 dark:border-gray-800">
               <div className="flex items-center">
-                <Link 
+                <Link
                   href="/"
                   onClick={() => setMobileMenuOpen(false)}
                   className="cursor-pointer"
                 >
-                  <div className="w-10 h-10 bg-black dark:bg-white rounded-sm transform rotate-45"></div>
+                  <div className="w-10 h-10 bg-black dark:bg-white"></div>
                 </Link>
               </div>
               <button
@@ -182,7 +201,7 @@ export function Navigation({ currentPage }: NavigationProps) {
               ))}
               
               {/* Profile Icon */}
-              <div className="w-12 h-12 rounded-full border-2 border-gray-400 dark:border-gray-600 bg-gray-100 dark:bg-gray-800 cursor-pointer hover:border-gray-600 dark:hover:border-gray-400 transition duration-300 flex items-center justify-center">
+              <div className="w-12 h-12 border-2 border-gray-400 dark:border-gray-600 bg-gray-100 dark:bg-gray-800 cursor-pointer hover:border-gray-600 dark:hover:border-gray-400 transition duration-300 flex items-center justify-center">
                 <span className="text-gray-600 dark:text-gray-300 font-bold text-lg">C</span>
               </div>
               

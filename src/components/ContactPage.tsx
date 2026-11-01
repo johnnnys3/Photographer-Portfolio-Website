@@ -9,8 +9,9 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Mail, Phone, MapPin, Instagram, Twitter, Facebook, Linkedin } from 'lucide-react';
+import gsap from 'gsap';
 import { getSiteContent, CONTENT_SECTIONS, DEFAULT_CONTENT } from '../services/contentService';
 import { FormTextInput, FormEmailInput, FormTextarea } from './FormInput';
 import { createContactFormValidator } from '../lib/formValidation';
@@ -44,6 +45,10 @@ export function ContactPage() {
   
   const [contactInfo, setContactInfo] = useState<any>(defaultContactInfo);
   const [socialMedia, setSocialMedia] = useState<any[]>(defaultSocialMedia);
+
+  const headerRef = useRef<HTMLDivElement>(null);
+  const infoRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const loadContent = async () => {
@@ -145,6 +150,24 @@ export function ContactPage() {
     }
   };
 
+  // Header, info column and form settle in on load, form trailing the info column
+  useEffect(() => {
+    if (loading) return;
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        headerRef.current,
+        { y: 30, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.7, ease: 'power3.out' }
+      );
+      gsap.fromTo(
+        [infoRef.current, formRef.current],
+        { y: 20, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.6, ease: 'power2.out', stagger: 0.1, delay: 0.2 }
+      );
+    });
+    return () => ctx.revert();
+  }, [loading]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-white dark:bg-black pt-24 pb-16 px-4 sm:px-6 lg:px-8 w-full flex items-center justify-center">
@@ -160,9 +183,9 @@ export function ContactPage() {
     <div className="min-h-screen bg-white dark:bg-black pt-24 pb-16 px-4 sm:px-6 lg:px-8 w-full">
       <div className="w-full">
         {/* Header */}
-        <div className="text-center mb-16">
-          <h1 className="text-4xl sm:text-5xl mb-4 text-gray-900 dark:text-white">Get In Touch</h1>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+        <div ref={headerRef} className="mb-16 border-b border-gray-200 dark:border-gray-800 pb-8">
+          <h1 className="text-6xl sm:text-8xl lg:text-9xl font-black uppercase tracking-tighter leading-[0.9] text-gray-900 dark:text-white mb-4">Contact</h1>
+          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl">
             Have a project in mind? Let's work together to create something amazing.
           </p>
         </div>
@@ -170,9 +193,9 @@ export function ContactPage() {
         {/* Contact Info & Form - Tailwind: flex flex-col md:flex-row gap-12 */}
         <div className="flex flex-col md:flex-row gap-12">
           {/* Contact Information */}
-          <div className="w-full md:w-1/3 space-y-8">
+          <div ref={infoRef} className="w-full md:w-1/3 space-y-8">
             <div>
-              <h2 className="text-2xl mb-6 text-gray-900 dark:text-white">Contact Information</h2>
+              <h2 className="text-xl font-black uppercase tracking-tight mb-6 text-gray-900 dark:text-white">Contact Information</h2>
               <div className="space-y-4">
                 <div className="flex items-start gap-4">
                   <Mail className="w-6 h-6 text-black dark:text-white flex-shrink-0 mt-1" />
@@ -222,15 +245,15 @@ export function ContactPage() {
             {/* Social Media */}
             {socialMedia && socialMedia.length > 0 && (
               <div>
-                <h3 className="text-xl mb-4 text-gray-900 dark:text-white">Follow Me</h3>
-                <div className="flex gap-4">
+                <h3 className="text-xs font-bold uppercase tracking-wider mb-4 text-gray-900 dark:text-white">Follow Me</h3>
+                <div className="flex gap-3">
                   {socialMedia.map((social, index) => {
                     const getIcon = () => {
                       const platform = social.platform?.toLowerCase();
-                      if (platform === 'instagram') return <Instagram className="w-6 h-6 text-gray-600 dark:text-gray-300" />;
-                      if (platform === 'twitter') return <Twitter className="w-6 h-6 text-gray-600 dark:text-gray-300" />;
-                      if (platform === 'facebook') return <Facebook className="w-6 h-6 text-gray-600 dark:text-gray-300" />;
-                      if (platform === 'linkedin') return <Linkedin className="w-6 h-6 text-gray-600 dark:text-gray-300" />;
+                      if (platform === 'instagram') return <Instagram className="w-5 h-5 text-gray-600 dark:text-gray-300" />;
+                      if (platform === 'twitter') return <Twitter className="w-5 h-5 text-gray-600 dark:text-gray-300" />;
+                      if (platform === 'facebook') return <Facebook className="w-5 h-5 text-gray-600 dark:text-gray-300" />;
+                      if (platform === 'linkedin') return <Linkedin className="w-5 h-5 text-gray-600 dark:text-gray-300" />;
                       return null;
                     };
 
@@ -242,7 +265,7 @@ export function ContactPage() {
                         href={social.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="p-3 bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-black dark:hover:bg-gray-600 hover:text-white transition duration-300 ease-in-out transform hover:scale-110"
+                        className="p-3 border border-gray-300 dark:border-gray-700 hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black hover:border-black dark:hover:border-white transition duration-300"
                         aria-label={social.platform || 'Social media'}
                       >
                         {getIcon()}
@@ -255,8 +278,8 @@ export function ContactPage() {
           </div>
 
           {/* Contact Form - Tailwind: w-full md:w-2/3 p-8 bg-gray-50 rounded-lg shadow */}
-          <div className="w-full md:w-2/3 p-8 bg-gray-50 dark:bg-gray-800 rounded-lg shadow">
-            <h2 className="text-2xl mb-6 text-gray-900 dark:text-white">Send a Message</h2>
+          <div ref={formRef} className="w-full md:w-2/3 p-8 border border-gray-200 dark:border-gray-800">
+            <h2 className="text-xl font-black uppercase tracking-tight mb-6 text-gray-900 dark:text-white">Send a Message</h2>
             
             {submitted ? (
               <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-200 px-6 py-4 rounded-lg flex items-center gap-3">
@@ -339,7 +362,7 @@ export function ContactPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-black hover:bg-gray-800 disabled:bg-gray-300 text-white py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 shadow-lg disabled:transform-none disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full bg-black hover:bg-gray-800 disabled:bg-gray-300 text-white py-3 px-6 text-sm font-bold uppercase tracking-wider transition duration-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {isSubmitting ? (
                     <>

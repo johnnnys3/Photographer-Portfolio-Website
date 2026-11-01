@@ -1,78 +1,23 @@
-/**
- * MIGRATION NOTE:
- * Source: src/App.tsx (home page section)
- * Destination: app/page.tsx
- * This page converts the home page from state-based routing to Next.js App Router.
- * The HomePage component logic is preserved exactly from the original implementation.
- * Any deviation is unintentional and should be flagged.
- */
+import { LandingStrip } from '@/components/sections/LandingStrip';
+import { getProjects, getSite } from '@/content/data';
 
-'use client';
-
-import { useState } from 'react';
-import { Navigation } from '@/components/Navigation';
-import { HomePage } from '@/components/HomePage';
-import { Lightbox } from '@/components/Lightbox';
-import { useData } from '@/contexts/DataContext';
-import { PageErrorBoundary, ComponentErrorBoundary } from '@/components/ErrorBoundary';
-
-export default function Home() {
-  const { images } = useData();
-  const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
-
-  const handleImageClick = (imageId: string) => {
-    setSelectedImageId(imageId);
-  };
-
-  const handleCloseLightbox = () => {
-    setSelectedImageId(null);
-  };
-
-  const selectedImage = selectedImageId
-    ? images.find(img => img.id === selectedImageId)
-    : null;
-
-  const currentIndex = selectedImageId
-    ? images.findIndex(img => img.id === selectedImageId)
-    : -1;
-
-  const handleNext = () => {
-    if (currentIndex < images.length - 1) {
-      setSelectedImageId(images[currentIndex + 1].id);
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentIndex > 0) {
-      setSelectedImageId(images[currentIndex - 1].id);
-    }
-  };
+// Landing page: a strip of random photographs from across the work, then on into the series.
+export default async function Home() {
+  const [projects, site] = await Promise.all([getProjects(), getSite()]);
+  const photos = projects
+    .flatMap((p) =>
+      (p.gallery.length ? p.gallery : p.photos).slice(0, 4).map((f) => ({
+        src: f.src, alt: f.alt, width: f.width, height: f.height,
+        slug: p.slug, title: p.title, place: p.location, year: p.date.slice(0, 4),
+      })),
+    ); // ponytail: 4 per series so every series shows and the page stays light; the browser picks the random order
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black w-full">
-      {/* Navigation - show on all pages except when viewing single image in lightbox */}
-      <ComponentErrorBoundary componentName="Navigation">
-        {!selectedImage && <Navigation currentPage="home" />}
-      </ComponentErrorBoundary>
-
-      {/* Page Content */}
-      <PageErrorBoundary context="home">
-        <HomePage onImageClick={handleImageClick} />
-      </PageErrorBoundary>
-
-      {/* Lightbox Modal */}
-      <ComponentErrorBoundary componentName="Lightbox">
-        {selectedImage && (
-          <Lightbox
-            photo={selectedImage}
-            images={images}
-            currentIndex={currentIndex}
-            onClose={handleCloseLightbox}
-            onNext={handleNext}
-            onPrevious={handlePrevious}
-          />
-        )}
-      </ComponentErrorBoundary>
+    <div className="pt-(--top-h)">
+      <h1 className="sr-only">
+        {site.name}, photographer based in {site.city}
+      </h1>
+      <LandingStrip photos={photos} />
     </div>
   );
 }
